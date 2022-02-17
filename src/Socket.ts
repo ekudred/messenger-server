@@ -3,13 +3,13 @@ const socket = require('socket.io')
 import { Server } from 'http'
 
 class Socket {
-  private io
+  public io
 
   constructor(server: Server) {
     this.io = socket(server, { cors: { credentials: true, origin: process.env.CLIENT_URL } })
   }
 
-  private plugins() {}
+  // private plugins() {}
 
   public connect() {
     this.io.on('connection', (socket: any) => {

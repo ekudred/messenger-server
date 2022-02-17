@@ -1,11 +1,12 @@
+import { Express } from 'express'
 import { useExpressServer } from 'routing-controllers'
-import { Server } from 'http'
 import path from 'path'
 
 class Router {
-  constructor(server: Server) {
-    useExpressServer(server, {
+  constructor(server: Express) {
+    return useExpressServer(server, {
       routePrefix: '/api',
+      cors: { credentials: true, origin: process.env.CLIENT_URL },
       controllers: [path.join(__dirname + '/controllers/*.controller.ts')],
       // middlewares: []
     })
