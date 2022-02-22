@@ -1,9 +1,4 @@
-interface IErrorAPI {
-  status: number
-  errors: string[]
-}
-
-interface IErrorAPIStatic {
+interface ErrorAPIStatic {
   badRequest(message: string, errors: string[]): any
   unAuthError(): any
   forbidden(): any
@@ -13,8 +8,8 @@ function staticImplements<T>() {
   return <U extends T>(constructor: U) => constructor
 }
 
-@staticImplements<IErrorAPIStatic>()
-class ErrorAPI extends Error implements IErrorAPI {
+@staticImplements<ErrorAPIStatic>()
+class ErrorAPI extends Error implements ErrorAPI {
   public status: number
   public errors: string[]
 
@@ -30,11 +25,11 @@ class ErrorAPI extends Error implements IErrorAPI {
     return new ErrorAPI(400, message, errors)
   }
 
-  public static unAuthError(message = 'Unauthorized') {
+  public static unAuthError(message: string = 'Unauthorized') {
     return new ErrorAPI(401, message)
   }
 
-  public static forbidden(message = 'No access') {
+  public static forbidden(message: string = 'No access') {
     return new ErrorAPI(403, message)
   }
 }

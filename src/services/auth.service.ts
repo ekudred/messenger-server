@@ -7,7 +7,7 @@ import UserService from './user.service'
 import MailService from './mail.service'
 import { UserDTO } from '../dtos/user.dto'
 import { SignInDTO, SignUpDTO, RefreshDTO } from '../dtos/auth.dto'
-import { getActivationMailOptions } from '../utils/send-mail-options'
+import { getActivationMailOptions } from '../utils/mail-options'
 
 interface SignUpOptions extends SignUpDTO {}
 interface SignInOptions extends SignInDTO {}
@@ -25,7 +25,7 @@ class AuthService {
   public static async signUp(options: SignUpOptions) {
     const user = await UserService.create(options)
 
-    const mailOptions = getActivationMailOptions({ to: user.email, link: `${process.env.DOMAIN}/api/auth/activate/${user.activation_link}` })
+    const mailOptions = getActivationMailOptions({ to: user.email, link: `${process.env.SERVER_URL}/api/auth/activate/${user.activation_link}` })
     const mail = new MailService()
     await mail.send({ ...mailOptions })
 

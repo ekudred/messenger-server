@@ -1,15 +1,12 @@
 const socket = require('socket.io')
-// import * as socket from 'socket.io'
-import { Server } from 'http'
+import { Server as HTTPServer } from 'http'
 
 class Socket {
-  public io
+  public io: any
 
-  constructor(server: Server) {
+  constructor(server: HTTPServer) {
     this.io = socket(server, { cors: { credentials: true, origin: process.env.CLIENT_URL } })
   }
-
-  // private plugins() {}
 
   public connect() {
     this.io.on('connection', (socket: any) => {

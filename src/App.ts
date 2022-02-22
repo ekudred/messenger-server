@@ -1,39 +1,29 @@
-import express, { Express } from 'express'
-import http, { Server } from 'http'
-// import path from 'path'
-// const uuid = require('uuid')
-// const cookieParser = require('cookie-parser')
-// import bodyParser from 'body-parser'
-// import cors from 'cors'
+import express, { Application } from 'express'
+import { Server as HTTPServer } from 'http'
 
+import Server from './server'
+import Router from './router'
+import Socket from './socket'
 import DataBase from './database'
-import Router from './Router'
-import Socket from './Socket'
 
 class App {
-  private server: Server
-  private app: Express
-  private database: DataBase
+  private app: Application
+  private server: HTTPServer
   private router: Router
   private socket: Socket
+  private database: DataBase
 
   constructor() {
     this.app = express()
-    this.server = http.createServer(this.app)
 
-    this.router = new Router(this.app)
-    this.database = new DataBase()
+    this.server = Server.create(this.app)
+    this.router = Router.create(this.app)
     this.socket = new Socket(this.server)
+    this.database = new DataBase()
 
-    this.database.connect()
     this.socket.connect()
+    this.database.connect()
   }
-
-  // private plugins() {
-  // this.app.use(cors({ credentials: true, origin: process.env.CLIENT_URL })) ?? because of the routing controllers
-  // this.app.use(cookieParser())
-  // this.app.use(bodyParser.json())
-  // }
 
   public start() {
     try {

@@ -2,7 +2,7 @@ import { JsonController as Controller, Body, Post, UseBefore } from 'routing-con
 import 'reflect-metadata'
 
 import UserService from '../services/user.service'
-import { UpdateDTO, FindDTO, DeleteDTO, ConfirmDTO } from '../dtos/profile.dto'
+import { EditDTO, FindDTO, DeleteDTO, ConfirmDTO } from '../dtos/profile.dto'
 import authMiddleware from '../middlewares/auth.middleware'
 
 import { Roles } from '../utils/constants'
@@ -19,8 +19,8 @@ class ProfileController {
 
   @Post('/edit')
   @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
-  async edit(@Body() body: UpdateDTO) {
-    const userData = await UserService.update(body, { id: body.id })
+  async edit(@Body({ options: { limit: '10mb' } }) body: EditDTO) {
+    const userData = await UserService.edit(body, { id: body.id })
 
     return userData
   }

@@ -5,11 +5,14 @@ import { Op } from 'sequelize'
 import ErrorAPI from '../exceptions/ErrorAPI'
 import AuthTokenService from './auth-token.service'
 import DataBase from '../database'
+import Storage from '../storage'
+
+import { UserDTO } from '../dtos/user.dto'
 import { SignUpDTO } from '../dtos/auth.dto'
-import { ConfirmDTO, DeleteDTO, UpdateDTO } from '../dtos/profile.dto'
+import { ConfirmDTO, DeleteDTO, EditDTO } from '../dtos/profile.dto'
 
 interface CreateOptions extends SignUpDTO {}
-interface UpdateOptions extends UpdateDTO {
+interface UpdateOptions extends EditDTO {
   [key: string]: any
 }
 interface DeleteOptions extends DeleteDTO {}
@@ -45,29 +48,56 @@ class UserService {
     return await DataBase.models.User.findAll()
   }
 
-  public static async update(update: UpdateOptions, filter: object) {
+  public static async edit(update: UpdateOptions, filter: object) {
     const user = await DataBase.models.User.findOne({ where: filter })
 
     for (const field in update) {
+      const value = update[field]
+
+      if (!value) continue
+      if (value == user[field]) throw ErrorAPI.badRequest(`${field} must not be repeated`)
+
       if (field === 'password') {
-        const isPass = await bcrypt.compare(update[field], user.password)
-        if (!isPass) {
-          user.password = await bcrypt.hash(update[field], 3)
-        }
+        const password: string = value
+
+        const isPass = await bcrypt.compare(password, user.password)
+        if (isPass) throw ErrorAPI.badRequest('Password must not be repeated')
+
+        const hashPassword = await bcrypt.hash(password, 3)
+        user.password = hashPassword
+
         continue
       }
 
       if (field === 'avatar') {
-        // update avatar
+        const base64String: string = value
+
+        if (base64String.includes('data:image')) {
+          const body = Buffer.from(base64String.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+          const contentType = base64String.split(';')[0].split('/')[1]
+
+          const options = {
+            filepath: `avatars/avatar${user.id}`,
+            body,
+            contentEncoding: 'base64',
+            contentType: `image/${contentType}`,
+          }
+
+          const storage = new Storage()
+          const data = await storage.upload(options)
+
+          user.avatar = data.Location
+        }
+
         continue
       }
 
-      if (user[field] !== update[field]) {
-        user[field] = update[field]
-      }
+      user[field] = value
     }
 
     user.save()
+
+    return new UserDTO(user)
   }
 
   public static async delete(options: DeleteOptions) {
@@ -85,7 +115,7 @@ class UserService {
     const user = await DataBase.models.User.findOne({ where: { id } })
     const isPass = await bcrypt.compare(password, user.password)
 
-    return isPass
+    return { isConfirm: isPass, user: { email: user.email, phone: user.phone } }
   }
 }
 

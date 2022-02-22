@@ -12,7 +12,6 @@ export class SignUpDTO {
   public email!: string
 
   @IsString()
-  // @Length(passwordLength.min, passwordLength.max, { message: 'Password is invalid' })
   @Matches(RegExpPassword, { message: 'Password is invalid' })
   public password!: string
 }
@@ -23,7 +22,6 @@ export class SignInDTO {
   public username!: string
 
   @IsString()
-  // @Length(passwordLength.min, passwordLength.max, { message: 'Password is invalid' })
   @Matches(RegExpPassword, { message: 'Password is invalid' })
   public password!: string
 
