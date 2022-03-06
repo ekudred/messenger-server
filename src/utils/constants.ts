@@ -1,6 +1,6 @@
 import { CookieOptions } from 'express'
 
-export enum Roles {
+export enum AuthRoles {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }

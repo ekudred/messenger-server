@@ -1,9 +1,14 @@
 import JWT from 'jsonwebtoken'
 
+interface expiresInOptions {
+  accessToken: string
+  refreshToken: string
+}
+
 class TokenService {
-  public static generateTokens(payload: string | object | Buffer) {
-    const accessToken = JWT.sign(payload, process.env.JWT_ACCESS_SECRET!, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN! })
-    const refreshToken = JWT.sign(payload, process.env.JWT_REFRESH_SECRET!, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN! })
+  public static generateTokens(payload: string | object | Buffer, expiresIn: expiresInOptions) {
+    const accessToken = JWT.sign(payload, process.env.JWT_ACCESS_SECRET!, { expiresIn: expiresIn.accessToken })
+    const refreshToken = JWT.sign(payload, process.env.JWT_REFRESH_SECRET!, { expiresIn: expiresIn.refreshToken })
 
     return { accessToken, refreshToken }
   }

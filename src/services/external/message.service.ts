@@ -1,4 +1,4 @@
-import DataBase from '../database'
+import DataBase from '../../database'
 
 class MessageService {}
 

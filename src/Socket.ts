@@ -1,18 +1,13 @@
-const socket = require('socket.io')
+import { useSocketServer } from 'socket-controllers'
 import { Server as HTTPServer } from 'http'
 
 class Socket {
-  public io: any
+  public static create(server: HTTPServer) {
+    const io = require('socket.io')(server, { cors: { origin: process.env.CLIENT_URL, credentials: true } })
 
-  constructor(server: HTTPServer) {
-    this.io = socket(server, { cors: { credentials: true, origin: process.env.CLIENT_URL } })
-  }
-
-  public connect() {
-    this.io.on('connection', (socket: any) => {
-      socket.on('disconnect', () => {
-        console.log(socket.id, 'disconnect')
-      })
+    useSocketServer(io, {
+      controllers: [__dirname + '/socket-controllers/**/*.socket-controller.ts'],
+      // middlewares: []
     })
   }
 }

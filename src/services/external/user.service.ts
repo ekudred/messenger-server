@@ -2,14 +2,14 @@ const bcrypt = require('bcrypt')
 const uuid = require('uuid')
 import { Op } from 'sequelize'
 
-import ErrorAPI from '../exceptions/ErrorAPI'
+import ErrorAPI from '../../exceptions/ErrorAPI'
 import AuthTokenService from './auth-token.service'
-import DataBase from '../database'
-import Storage from '../storage'
+import DataBase from '../../database'
+import Storage from '../../storage'
 
-import { UserDTO } from '../dtos/user.dto'
-import { SignUpDTO } from '../dtos/auth.dto'
-import { ConfirmDTO, DeleteDTO, EditDTO } from '../dtos/profile.dto'
+import { UserDTO } from '../../dtos/user.dto'
+import { SignUpDTO } from '../../dtos/auth.dto'
+import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/profile.dto'
 
 interface CreateOptions extends SignUpDTO {}
 interface UpdateOptions extends EditDTO {
@@ -55,7 +55,6 @@ class UserService {
       const value = update[field]
 
       if (!value) continue
-      if (value == user[field]) throw ErrorAPI.badRequest(`${field} must not be repeated`)
 
       if (field === 'password') {
         const password: string = value
@@ -77,7 +76,7 @@ class UserService {
           const contentType = base64String.split(';')[0].split('/')[1]
 
           const options = {
-            filepath: `avatars/avatar${user.id}`,
+            path: `avatars/avatar${user.id}`,
             body,
             contentEncoding: 'base64',
             contentType: `image/${contentType}`,
@@ -92,7 +91,9 @@ class UserService {
         continue
       }
 
-      user[field] = value
+      if (value !== user[field]) {
+        user[field] = value
+      }
     }
 
     user.save()

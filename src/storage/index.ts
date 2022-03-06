@@ -3,13 +3,13 @@ import { S3 } from 'aws-sdk'
 type ContentEncoding = string // 'base64'
 type ContentType = string // 'image/png'
 
-interface UploadFileParams {
-  filepath: string
+interface UploadParams {
+  path: string
   body: string | Buffer
   contentEncoding: ContentEncoding
   contentType: ContentType
 }
-interface getFileParams {
+interface getParams {
   filename: string
 }
 
@@ -24,7 +24,7 @@ class Storage {
     })
   }
 
-  public async get(params: getFileParams) {
+  public async get(params: getParams) {
     const { filename } = params
 
     const data = await this.client.getObject({ Bucket: process.env.AWS_BUCKET!, Key: filename }).promise()
@@ -33,12 +33,12 @@ class Storage {
     console.log(data)
   }
 
-  public async upload(params: UploadFileParams) {
-    const { filepath, body, contentEncoding, contentType } = params
+  public async upload(params: UploadParams) {
+    const { path, body, contentEncoding, contentType } = params
 
     const uploadOptions = {
       Bucket: process.env.AWS_BUCKET!,
-      Key: filepath,
+      Key: path,
       Body: body,
       ContentEncoding: contentEncoding,
       ContentType: contentType,

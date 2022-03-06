@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Matches, IsOptional, IsBase64 } from 'class-validator'
+import { IsEmail, IsString, Matches, IsOptional } from 'class-validator'
 
 import { RegExpUserName, RegExpFullName, RegExpPhoneNumber, RegExpDate, RegExpPassword } from '../utils/constants'
 
@@ -33,7 +33,7 @@ export class EditDTO {
 
   @IsOptional()
   @IsString()
-  @IsEmail({ message: 'Email is invalid' })
+  @IsEmail({}, { message: 'Email is invalid' })
   public email!: string
 
   @IsOptional()

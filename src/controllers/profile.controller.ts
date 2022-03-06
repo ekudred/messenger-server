@@ -1,16 +1,16 @@
-import { JsonController as Controller, Body, Post, UseBefore } from 'routing-controllers'
+import { JsonController, Body, Post, UseBefore } from 'routing-controllers'
 import 'reflect-metadata'
 
-import UserService from '../services/user.service'
+import UserService from '../services/external/user.service'
 import { EditDTO, FindDTO, DeleteDTO, ConfirmDTO } from '../dtos/profile.dto'
 import authMiddleware from '../middlewares/auth.middleware'
 
-import { Roles } from '../utils/constants'
+import { AuthRoles } from '../utils/constants'
 
-@Controller('/profile')
+@JsonController('/profile')
 class ProfileController {
   @Post('/find')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async find(@Body() body: FindDTO) {
     const userData = await UserService.find(body)
 
@@ -18,7 +18,7 @@ class ProfileController {
   }
 
   @Post('/edit')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async edit(@Body({ options: { limit: '10mb' } }) body: EditDTO) {
     const userData = await UserService.edit(body, { id: body.id })
 
@@ -26,7 +26,7 @@ class ProfileController {
   }
 
   @Post('/delete')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async delete(@Body() body: DeleteDTO) {
     await UserService.delete(body)
 
@@ -34,7 +34,7 @@ class ProfileController {
   }
 
   @Post('/confirm')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async confirm(@Body() body: ConfirmDTO) {
     const isConfirm = await UserService.confirm(body)
 

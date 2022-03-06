@@ -1,14 +1,14 @@
 import { Response } from 'express'
-import { JsonController as Controller, Param, CookieParam, Body, Post, Get, Res, UseBefore, Redirect, QueryParams } from 'routing-controllers'
+import { JsonController, Param, CookieParam, Body, Post, Get, Res, UseBefore, Redirect, QueryParams } from 'routing-controllers'
 import 'reflect-metadata'
 
-import AuthService from '../services/auth.service'
+import AuthService from '../services/external/auth.service'
 import { SignUpDTO, SignInDTO, RefreshDTO } from '../dtos/auth.dto'
 import authMiddleware from '../middlewares/auth.middleware'
 
-import { cookieOptionsToken, Roles } from '../utils/constants'
+import { cookieOptionsToken, AuthRoles } from '../utils/constants'
 
-@Controller('/auth')
+@JsonController('/auth')
 class AuthController {
   @Post('/sign-up')
   async signUp(@Body() body: SignUpDTO) {
@@ -26,7 +26,7 @@ class AuthController {
   }
 
   @Post('/sign-out')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async signOut(@CookieParam('refreshToken') refreshToken: string, @Res() res: Response) {
     await AuthService.signOut({ refreshToken })
     res.clearCookie('refreshToken')

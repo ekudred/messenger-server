@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "target": "es2017",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": true,
+    "moduleResolution": "node",
     "declaration": true,
-    "removeComments": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
-    "target": "es2016",
-    "esModuleInterop": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "sourceMap": true,
     "incremental": true,
-    "strict": true,
-    // "strictPropertyInitialization": false
-  }
+    "removeComments": true
+  },
+  "exclude": ["node_modules", "dist"]
 }

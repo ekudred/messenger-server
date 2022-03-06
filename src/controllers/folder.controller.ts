@@ -1,16 +1,16 @@
-import { JsonController as Controller, Body, Post, UseBefore } from 'routing-controllers'
+import { JsonController, Body, Post, UseBefore } from 'routing-controllers'
 import 'reflect-metadata'
 
-import FolderService from '../services/folder.service'
+import FolderService from '../services/external/folder.service'
 import { AddDTO, CreateDTO, FindAllDTO, DeleteDTO } from '../dtos/folder.dto'
 import authMiddleware from '../middlewares/auth.middleware'
 
-import { Roles } from '../utils/constants'
+import { AuthRoles } from '../utils/constants'
 
-@Controller('/folder')
+@JsonController('/folder')
 class ProfileController {
   @Post('/create')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  // @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async find(@Body() body: CreateDTO) {
     const folderData = await FolderService.create(body)
 
@@ -18,7 +18,7 @@ class ProfileController {
   }
 
   @Post('/add')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async edit(@Body() body: AddDTO) {
     const folderData = await FolderService.add(body)
 
@@ -26,15 +26,15 @@ class ProfileController {
   }
 
   @Post('/findAll')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async findAll(@Body() body: FindAllDTO) {
-    const folderRoster = await FolderService.findAll(body)
+    const folderData = await FolderService.findAll(body)
 
-    return folderRoster
+    return folderData
   }
 
   @Post('/delete')
-  @UseBefore(authMiddleware([Roles.ADMIN, Roles.USER]))
+  @UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
   async delete(@Body() body: DeleteDTO) {
     await FolderService.delete(body)
 

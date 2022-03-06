@@ -9,19 +9,16 @@ import DataBase from './database'
 class App {
   private app: Application
   private server: HTTPServer
-  private router: Router
-  private socket: Socket
   private database: DataBase
 
   constructor() {
     this.app = express()
-
     this.server = Server.create(this.app)
-    this.router = Router.create(this.app)
-    this.socket = new Socket(this.server)
-    this.database = new DataBase()
 
-    this.socket.connect()
+    Router.create(this.app)
+    Socket.create(this.server)
+
+    this.database = new DataBase()
     this.database.connect()
   }
 

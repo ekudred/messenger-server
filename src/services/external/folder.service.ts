@@ -1,7 +1,8 @@
 const uuid = require('uuid')
 
-import DataBase from '../database'
-import { AddDTO, CreateDTO, FindAllDTO, DeleteDTO } from '../dtos/folder.dto'
+import DataBase from '../../database'
+import DialogService from './dialog.service'
+import { AddDTO, CreateDTO, FindAllDTO, DeleteDTO, FolderDTO } from '../../dtos/folder.dto'
 
 interface CreateOptions extends CreateDTO {}
 interface AddOptions extends AddDTO {}
@@ -10,18 +11,14 @@ interface DeleteOptions extends DeleteDTO {}
 
 class FolderService {
   public static async create(options: CreateOptions) {
-    const { userID, name, chats } = options
+    const { userID, name, chatIDs } = options
 
-    const folder = await DataBase.models.Folder.create({ id: uuid.v4(), user_id: userID, name })
+    // const folder = await DataBase.models.Folder.create({ id: uuid.v4(), user_id: userID, name })
+    // const folderDTO = new FolderDTO(folder)
+    
+    const dialog = await DialogService.create({ user1ID: '5c58548a-cdc4-49f2-9cd7-0605781b73ae', user2ID: '6e971ccd-3eb9-4b00-ad22-ca4c82c01656' })
 
-    let folderRoster: any = []
-    if (Object.keys(chats).length !== 0) {
-      folderRoster = chats.map(async chat => {
-        return await DataBase.models.FolderRoster.create({ id: uuid.v4(), chat_id: chat.id, user_id: userID })
-      })
-    }
-
-    return { folder, folderRoster }
+    return dialog
   }
 
   public static async add(options: AddOptions) {
@@ -38,9 +35,14 @@ class FolderService {
     const { userID } = options
 
     const folders = await DataBase.models.Folder.findAll({ where: { user_id: userID } })
-    const foldersRoster = await DataBase.models.FolderRoster.findAll({ where: { user_id: userID } })
+    // const foldersRoster = await DataBase.models.FolderRoster.findAll({ where: { user_id: userID } })
+    // console.log(folders)
+    // const foldersDTO = folders.map((folder: any) => new FolderDTO(folder))
+    // const foldersWithRoster = foldersDTO.map((folderDTO: any) => {
+    //   return { ...folderDTO, chats: [] }
+    // })
 
-    return { folders, foldersRoster }
+    return { folders: [] }
   }
 
   public static async delete(options: DeleteOptions) {

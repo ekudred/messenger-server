@@ -1,13 +1,13 @@
 const bcrypt = require('bcrypt')
 const uuid = require('uuid')
 
-import ErrorAPI from '../exceptions/ErrorAPI'
+import ErrorAPI from '../../exceptions/ErrorAPI'
 import AuthTokenService from './auth-token.service'
 import UserService from './user.service'
-import MailService from './mail.service'
-import { UserDTO } from '../dtos/user.dto'
-import { SignInDTO, SignUpDTO, RefreshDTO } from '../dtos/auth.dto'
-import { getActivationMailOptions } from '../utils/mail-options'
+import MailService from '../mail.service'
+import { UserDTO } from '../../dtos/user.dto'
+import { SignInDTO, SignUpDTO, RefreshDTO } from '../../dtos/auth.dto'
+import { getActivationMailOptions } from '../../utils/mail-options'
 
 interface SignUpOptions extends SignUpDTO {}
 interface SignInOptions extends SignInDTO {}
@@ -47,7 +47,10 @@ class AuthService {
     if (!isActivated) throw ErrorAPI.badRequest('Email not verified')
 
     const userDTO = new UserDTO(user)
-    const tokens = AuthTokenService.generateTokens(userDTO.toPlainObj())
+    const tokens = AuthTokenService.generateTokens(userDTO.toPlainObj(), {
+      accessToken: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN!,
+      refreshToken: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN!,
+    })
     await AuthTokenService.create({ user_id: userDTO.id, client_id: clientID }, tokens.refreshToken, clientID, {
       id: uuid.v4(),
       user_id: userDTO.id,
@@ -74,7 +77,10 @@ class AuthService {
     const user = await UserService.find({ id: userData.id })
     const userDTO = new UserDTO(user)
 
-    const tokens = AuthTokenService.generateTokens(userDTO.toPlainObj())
+    const tokens = AuthTokenService.generateTokens(userDTO.toPlainObj(), {
+      accessToken: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN!,
+      refreshToken: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN!,
+    })
     tokenFromDB.refresh_token = tokens.refreshToken
     tokenFromDB.save()
 

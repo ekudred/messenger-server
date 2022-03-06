@@ -1,7 +1,5 @@
 import { IsString, ValidateNested } from 'class-validator'
 
-import { ChatDTO } from './chat.dto'
-
 export class CreateDTO {
   @IsString()
   public userID!: string
@@ -10,7 +8,7 @@ export class CreateDTO {
   public name!: string
 
   @ValidateNested()
-  public chats!: ChatDTO[]
+  public chatIDs!: string[]
 }
 
 export class AddDTO {
@@ -31,18 +29,17 @@ export class DeleteDTO {
   public folderID!: string
 }
 
-// export class FolderDTO {
-//   public id: string
-//   public userID: string
-//   public name: string
+export class FolderDTO {
+  public id: string
+  public userID!: string
+  public name: string
 
-//   constructor(object: { [key: string]: any }) {
-//     this.id = object.id
-//     this.userID = object.user_id
-//     this.name = object.name
-//   }
+  constructor(object: { [key: string]: any }) {
+    this.id = object.id
+    this.name = object.name
+  }
 
-//   public toPlainObj(): Object {
-//     return Object.assign({}, this)
-//   }
-// }
+  public toPlainObj(): Object {
+    return Object.assign({}, this)
+  }
+}

@@ -1,44 +1,42 @@
-import { Sequelize } from 'sequelize-typescript'
 import path from 'path'
 import fs from 'fs'
 
-import config, { Config } from './config'
+import sequelize from './sequelize'
 
 class DataBase {
-  public static models: any = {}
+  public static models: { [key: string]: any } = this.getModels()
 
-  constructor() {
-    this.getModels()
-  }
+  private static getModels() {
+    const modelsPath = __dirname + '/models'
+    const modelExtension = /model.ts$/
 
-  private getModels() {
-    fs.readdirSync(__dirname + '/models')
-      .filter((file: string) => {
-        return file.indexOf('.') !== 0 && file.slice(-9) === '.model.ts'
-      })
-      .forEach((file: any) => {
-        const model = require(path.join(__dirname + '/models', file)).default
-        DataBase.models[model.name] = model
-      })
+    const models = fs
+      .readdirSync(modelsPath)
+      .filter((filename: string) => modelExtension.test(filename))
+      .reduce((total: any, filename: string) => {
+        const model = require(path.join(modelsPath, filename)).default
+        total[model.name] = model
+        return total
+      }, {})
+
+    Object.keys(models).forEach((modelName: string) => {
+      if ('associate' in models[modelName]) {
+        models[modelName].associate(models)
+      }
+    })
+
+    return models
   }
 
   public async connect(): Promise<void> {
-    const init = (config: Config) => {
-      const { database, username, password, host, port } = config
+    try {
+      await sequelize.authenticate()
+      await sequelize.sync()
 
-      return new Sequelize(database, username, password, {
-        dialect: 'postgres',
-        host: host,
-        port: port,
-        // storage: ':memory:',
-        models: [__dirname + '/models/**/*.model.ts'],
-      })
+      console.log('Database connection successfully established')
+    } catch (error) {
+      console.error('Unable to connect to the database:', error)
     }
-
-    const sequelize = init(config[String(process.env.NODE_ENV)])
-
-    await sequelize.authenticate()
-    await sequelize.sync()
   }
 }
 

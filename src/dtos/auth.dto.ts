@@ -8,7 +8,7 @@ export class SignUpDTO {
   public username!: string
 
   @IsString()
-  @IsEmail({ message: 'Email is invalid' })
+  @IsEmail({}, { message: 'Email is invalid' })
   public email!: string
 
   @IsString()

@@ -1,14 +1,13 @@
 import { useExpressServer } from 'routing-controllers'
 import { Application } from 'express'
-import path from 'path'
 
 class Router {
   public static create(app: Application) {
-    return useExpressServer(app, {
+    useExpressServer(app, {
       routePrefix: '/api',
-      cors: { credentials: true, origin: process.env.CLIENT_URL },
-      controllers: [path.join(__dirname + '/controllers/*.controller.ts')],
-      // middlewares: []
+      cors: { origin: process.env.CLIENT_URL, credentials: true },
+      controllers: [__dirname + '/controllers/**/*.controller.ts'],
+      // middlewares: [__dirname + '/middlewares/error.middleware.ts'],
     })
   }
 }
