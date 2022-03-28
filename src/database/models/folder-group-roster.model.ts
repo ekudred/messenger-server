@@ -1,4 +1,4 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, ForeignKey, BelongsTo, DefaultScope } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, BelongsTo, DefaultScope, Default, DataType } from 'sequelize-typescript'
 
 import Folder from './folder.model'
 import Group from './group.model'
@@ -8,17 +8,16 @@ import Group from './group.model'
 }))
 @Table({ tableName: 'folder_group_roster' })
 class FolderGroupRoster extends Model<FolderGroupRoster> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
   @ForeignKey(() => Folder)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare folder_id: string
 
   @ForeignKey(() => Group)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare group_id: string
 
   // Associations
@@ -28,44 +27,3 @@ class FolderGroupRoster extends Model<FolderGroupRoster> {
 }
 
 export default FolderGroupRoster
-
-// import { DataTypes, Model } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-// import Group from './group.model'
-
-// interface FolderGroupRosterAttributes {
-//   id: string
-//   folder_id: string
-//   group_id: string
-// }
-
-// class FolderGroupRoster extends Model<FolderGroupRosterAttributes> {
-//   declare id: string
-//   declare folder_id: string
-//   declare group_id: string
-// }
-
-// FolderGroupRoster.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//     folder_id: {
-//       type: DataTypes.UUID,
-//     },
-//     group_id: {
-//       type: DataTypes.UUID,
-//     },
-//   },
-//   {
-//     tableName: 'folder_group_roster',
-//     sequelize,
-//   }
-// )
-
-// // FolderGroupRoster.hasOne(Group)
-// // Group.belongsTo(FolderGroupRoster)
-
-// export default FolderGroupRoster

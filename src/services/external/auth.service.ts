@@ -4,9 +4,9 @@ const uuid = require('uuid')
 import ErrorAPI from '../../exceptions/ErrorAPI'
 import AuthTokenService from './auth-token.service'
 import UserService from './user.service'
-import MailService from '../mail.service'
-import { UserDTO } from '../../dtos/user.dto'
-import { SignInDTO, SignUpDTO, RefreshDTO } from '../../dtos/auth.dto'
+import MailService from '../internal/mail.service'
+import { UserDTO } from '../../dtos/common/user.dto'
+import { SignInDTO, SignUpDTO, RefreshDTO } from '../../dtos/controllers/auth.dto'
 import { getActivationMailOptions } from '../../utils/mail-options'
 
 interface SignUpOptions extends SignUpDTO {}

@@ -1,5 +1,6 @@
 import { useExpressServer } from 'routing-controllers'
 import { Application } from 'express'
+import chalk from 'chalk'
 
 class Router {
   public static create(app: Application) {
@@ -9,6 +10,8 @@ class Router {
       controllers: [__dirname + '/controllers/**/*.controller.ts'],
       // middlewares: [__dirname + '/middlewares/error.middleware.ts'],
     })
+
+    console.log(chalk.magenta('Router'), chalk.green('is up and running'))
   }
 }
 

@@ -1,6 +1,6 @@
 import { IsEmail, IsString, Matches, IsOptional } from 'class-validator'
 
-import { RegExpUserName, RegExpFullName, RegExpPhoneNumber, RegExpDate, RegExpPassword } from '../utils/constants'
+import { RegExpUserName, RegExpFullName, RegExpPhoneNumber, RegExpDate, RegExpPassword } from '../../utils/constants'
 
 export class FindDTO {
   @IsString()

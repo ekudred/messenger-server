@@ -1,6 +1,6 @@
 import { IsEmail, IsString, Matches } from 'class-validator'
 
-import { RegExpPassword, RegExpUserName } from '../utils/constants'
+import { RegExpPassword, RegExpUserName } from '../../utils/constants'
 
 export class SignUpDTO {
   @IsString()

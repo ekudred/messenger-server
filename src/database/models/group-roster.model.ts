@@ -1,59 +1,29 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, ForeignKey } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, Default, DataType, BelongsTo, DefaultScope } from 'sequelize-typescript'
 
 import Group from './group.model'
 import User from './user.model'
 
+@DefaultScope(() => ({
+  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }]
+}))
 @Table({ tableName: 'group_roster' })
 class GroupRoster extends Model<GroupRoster> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
   @ForeignKey(() => Group)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare group_id: string
 
   @ForeignKey(() => User)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare user_id: string
+
+  // Associations
+
+  @BelongsTo(() => User)
+  declare user: User
 }
 
 export default GroupRoster
-
-// import { DataTypes, Model } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-
-// interface GroupRosterAttributes {
-//   id: string
-//   group_id: string
-//   user_id: string
-// }
-
-// class GroupRoster extends Model<GroupRosterAttributes> {
-//   declare id: string
-//   declare group_id: string
-//   declare user_id: string
-// }
-
-// GroupRoster.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//     group_id: {
-//       type: DataTypes.UUID,
-//     },
-//     user_id: {
-//       type: DataTypes.UUID,
-//     },
-//   },
-//   {
-//     tableName: 'group_roster',
-//     sequelize,
-//   }
-// )
-
-// export default GroupRoster

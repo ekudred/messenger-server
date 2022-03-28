@@ -1,4 +1,4 @@
-import TokenService from '../token.service'
+import TokenService from '../internal/token.service'
 import DataBase from '../../database'
 
 class AuthTokenService extends TokenService {

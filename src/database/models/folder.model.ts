@@ -1,27 +1,37 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, ForeignKey, HasMany, DefaultScope } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, HasMany, Scopes, Default, DataType, BelongsTo } from 'sequelize-typescript'
 
 import User from './user.model'
 import FolderDialogRoster from './folder-dialog-roster.model'
 import FolderGroupRoster from './folder-group-roster.model'
 
-@DefaultScope(() => ({
-  include: [FolderDialogRoster, FolderGroupRoster],
+@Scopes(() => ({
+  excludeAttributes: {
+    attributes: ['id', 'name', 'user_id'],
+  },
+  dialogs: {
+    include: [{ model: FolderDialogRoster, attributes: ['id']}],
+  },
+  groups: {
+    include: [{ model: FolderGroupRoster, attributes: ['id'] }],
+  },
 }))
 @Table({ tableName: 'folders' })
 class Folder extends Model<Folder> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
   @ForeignKey(() => User)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare user_id: string
 
-  @Column
+  @Column({ type: DataType.STRING })
   declare name: string
 
   // Associations
+
+  @BelongsTo(() => User)
+  declare user: User
 
   @HasMany(() => FolderDialogRoster)
   declare dialogs: FolderDialogRoster[]
@@ -31,48 +41,3 @@ class Folder extends Model<Folder> {
 }
 
 export default Folder
-
-// import { DataTypes, Model } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-// import FolderDialogRoster from './folder-dialog-roster.model'
-// import FolderGroupRoster from './folder-group-roster.model'
-
-// interface FolderAttributes {
-//   id: string
-//   user_id: string
-//   name: string
-// }
-
-// class Folder extends Model<FolderAttributes> {
-//   declare id: string
-//   declare user_id: string
-//   declare name: string
-// }
-
-// Folder.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//     user_id: {
-//       type: DataTypes.UUID,
-//     },
-//     name: {
-//       type: DataTypes.STRING,
-//     },
-//   },
-//   {
-//     tableName: 'folders',
-//     sequelize,
-//   }
-// )
-
-// Folder.hasMany(FolderDialogRoster, { foreignKey: 'folder_id' })
-// FolderDialogRoster.belongsTo(Folder)
-
-// Folder.hasMany(FolderGroupRoster, { foreignKey: 'folder_id' })
-// FolderGroupRoster.belongsTo(Folder)
-
-// export default Folder

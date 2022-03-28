@@ -1,59 +1,29 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, ForeignKey } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, DataType, Default, BelongsTo, DefaultScope } from 'sequelize-typescript'
 
 import Dialog from './dialog.model'
 import User from './user.model'
 
+@DefaultScope(() => ({
+  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }],
+}))
 @Table({ tableName: 'dialog_roster' })
 class DialogRoster extends Model<DialogRoster> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
   @ForeignKey(() => Dialog)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare dialog_id: string
 
   @ForeignKey(() => User)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare user_id: string
+
+  // Associations
+
+  @BelongsTo(() => User)
+  declare user: User
 }
 
 export default DialogRoster
-
-// import { DataTypes, Model } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-
-// interface DialogRosterAttributes {
-//   id: string
-//   dialog_id: string
-//   user_id: string
-// }
-
-// class DialogRoster extends Model<DialogRosterAttributes> {
-//   declare id: string
-//   declare dialog_id: string
-//   declare user_id: string
-// }
-
-// DialogRoster.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//     dialog_id: {
-//       type: DataTypes.UUID,
-//     },
-//     user_id: {
-//       type: DataTypes.UUID,
-//     },
-//   },
-//   {
-//     tableName: 'dialog_roster',
-//     sequelize,
-//   }
-// )
-
-// export default DialogRoster

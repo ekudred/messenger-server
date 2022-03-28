@@ -1,5 +1,6 @@
 import path from 'path'
 import fs from 'fs'
+import chalk from 'chalk'
 
 import sequelize from './sequelize'
 
@@ -33,9 +34,9 @@ class DataBase {
       await sequelize.authenticate()
       await sequelize.sync()
 
-      console.log('Database connection successfully established')
+      console.log(chalk.magenta('Database'), chalk.green('connection successfully established'))
     } catch (error) {
-      console.error('Unable to connect to the database:', error)
+      console.error(chalk.red('Unable to connect to the database:'), error)
     }
   }
 }

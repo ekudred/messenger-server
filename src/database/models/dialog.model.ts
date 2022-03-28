@@ -1,12 +1,19 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, HasMany, Scopes } from 'sequelize-typescript'
+import { Model, Table, Column, HasMany, Scopes, Default, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript'
 
 import DialogMessage from './dialog-message.model'
 import DialogRoster from './dialog-roster.model'
 import FolderDialogRoster from './folder-dialog-roster.model'
+import User from './user.model'
 
 @Scopes(() => ({
+  excludeAttributes: {
+    attributes: { exclude: ['user_id', 'createdAt', 'updatedAt'] },
+  },
+  user: {
+    include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }],
+  },
   roster: {
-    include: [DialogRoster],
+    include: [{ model: DialogRoster, attributes: ['id'] }],
   },
   messages: {
     include: [DialogMessage],
@@ -14,12 +21,18 @@ import FolderDialogRoster from './folder-dialog-roster.model'
 }))
 @Table({ tableName: 'dialogs' })
 class Dialog extends Model<Dialog> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, primaryKey: true })
+  declare user_id: string
+
   // Associations
+
+  @BelongsTo(() => User)
+  declare user: User
 
   @HasMany(() => DialogRoster)
   declare roster: DialogRoster[]
@@ -32,46 +45,3 @@ class Dialog extends Model<Dialog> {
 }
 
 export default Dialog
-
-// import { DataTypes, Model, Association } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-// import DialogMessage from './dialog-message.model'
-// import DialogRoster from './dialog-roster.model'
-
-// interface DialogAttributes {
-//   id: string
-// }
-
-// class Dialog extends Model<DialogAttributes> {
-//   declare id: string
-// }
-
-// Dialog.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//   },
-//   {
-//     tableName: 'dialogs',
-//     sequelize,
-//     scopes: {
-//       roster: {
-//         include: [DialogRoster],
-//       },
-//       messages: {
-//         include: [DialogMessage],
-//       },
-//     },
-//   }
-// )
-
-// Dialog.hasMany(DialogRoster, { foreignKey: 'dialog_id' })
-// DialogRoster.belongsTo(Dialog)
-
-// Dialog.hasMany(DialogMessage, { foreignKey: 'dialog_id' })
-// DialogMessage.belongsTo(Dialog)
-
-// export default Dialog

@@ -6,6 +6,8 @@ import Router from './router'
 import Socket from './socket'
 import DataBase from './database'
 
+import chalk from 'chalk'
+
 class App {
   private app: Application
   private server: HTTPServer
@@ -24,7 +26,9 @@ class App {
 
   public start() {
     try {
-      this.server.listen(process.env.PORT, () => console.log(`Server has been started on port ${process.env.PORT}`))
+      this.server.listen(process.env.PORT, () =>
+        console.log(chalk.magenta('App'), chalk.green('has been started on port'), chalk.underline.green(process.env.PORT))
+      )
     } catch (error) {
       console.log(error)
       process.exit(1)

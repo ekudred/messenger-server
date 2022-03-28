@@ -1,4 +1,4 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, ForeignKey, HasMany, Scopes } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, HasMany, Scopes, DataType, Default, BelongsTo } from 'sequelize-typescript'
 
 import User from './user.model'
 import GroupRoster from './group-roster.model'
@@ -6,8 +6,14 @@ import GroupMessage from './group-message.model'
 import FolderGroupRoster from './folder-group-roster.model'
 
 @Scopes(() => ({
+  excludeAttributes: {
+    attributes: { exclude: ['user_id', 'createdAt', 'updatedAt'] },
+  },
+  user: {
+    include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }],
+  },
   roster: {
-    include: [GroupRoster],
+    include: [{ model: GroupRoster, attributes: ['id'] }],
   },
   messages: {
     include: [GroupMessage],
@@ -15,22 +21,24 @@ import FolderGroupRoster from './folder-group-roster.model'
 }))
 @Table({ tableName: 'groups' })
 class Group extends Model<Group> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
   @ForeignKey(() => User)
-  @Column
-  declare creator_id: string
+  @Column({ type: DataType.UUID, primaryKey: true })
+  declare user_id: string
 
-  @Column
+  @Column({ type: DataType.STRING })
   declare name: string
 
-  @Column
+  @Column({ type: DataType.STRING })
   declare image: string
 
   // Associations
+
+  @BelongsTo(() => User)
+  declare user: User
 
   @HasMany(() => GroupRoster)
   declare roster: GroupRoster[]
@@ -43,53 +51,3 @@ class Group extends Model<Group> {
 }
 
 export default Group
-
-// import { DataTypes, Model } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-// import GroupRoster from './group-roster.model'
-// import GroupMessage from './group-message.model'
-
-// interface GroupAttributes {
-//   id: string
-//   creator_id: string
-//   name: string
-//   image: string
-// }
-
-// class Group extends Model<GroupAttributes> {
-//   declare id: string
-//   declare creator_id: string
-//   declare name: string
-//   declare image: string
-// }
-
-// Group.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//     creator_id: {
-//       type: DataTypes.UUID,
-//     },
-//     name: {
-//       type: DataTypes.STRING,
-//     },
-//     image: {
-//       type: DataTypes.STRING,
-//     },
-//   },
-//   {
-//     tableName: 'groups',
-//     sequelize,
-//   }
-// )
-
-// Group.hasMany(GroupRoster, { foreignKey: 'group_id' })
-// GroupRoster.belongsTo(Group)
-
-// Group.hasMany(GroupMessage, { foreignKey: 'group_id' })
-// GroupRoster.belongsTo(Group)
-
-// export default Group

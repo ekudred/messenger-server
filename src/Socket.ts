@@ -1,5 +1,6 @@
 import { useSocketServer } from 'socket-controllers'
 import { Server as HTTPServer } from 'http'
+import chalk from 'chalk'
 
 class Socket {
   public static create(server: HTTPServer) {
@@ -9,6 +10,8 @@ class Socket {
       controllers: [__dirname + '/socket-controllers/**/*.socket-controller.ts'],
       // middlewares: []
     })
+
+    console.log(chalk.magenta('Socket.io'), chalk.green('is up and running'))
   }
 }
 

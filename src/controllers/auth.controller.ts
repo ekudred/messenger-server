@@ -3,7 +3,7 @@ import { JsonController, Param, CookieParam, Body, Post, Get, Res, UseBefore, Re
 import 'reflect-metadata'
 
 import AuthService from '../services/external/auth.service'
-import { SignUpDTO, SignInDTO, RefreshDTO } from '../dtos/auth.dto'
+import { SignUpDTO, SignInDTO, RefreshDTO } from '../dtos/controllers/auth.dto'
 import authMiddleware from '../middlewares/auth.middleware'
 
 import { cookieOptionsToken, AuthRoles } from '../utils/constants'

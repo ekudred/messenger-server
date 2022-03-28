@@ -7,9 +7,11 @@ import AuthTokenService from './auth-token.service'
 import DataBase from '../../database'
 import Storage from '../../storage'
 
-import { UserDTO } from '../../dtos/user.dto'
-import { SignUpDTO } from '../../dtos/auth.dto'
-import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/profile.dto'
+import { UserDTO } from '../../dtos/common/user.dto'
+import { SignUpDTO } from '../../dtos/controllers/auth.dto'
+import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/controllers/profile.dto'
+
+import { defaultAvatarImage } from '../../utils/constants'
 
 interface CreateOptions extends SignUpDTO {}
 interface UpdateOptions extends EditDTO {
@@ -34,6 +36,7 @@ class UserService {
       password: hashPassword,
       email,
       username,
+      avatar: defaultAvatarImage,
       activation_link: activationLink,
     })
 
@@ -67,7 +70,6 @@ class UserService {
 
         continue
       }
-
       if (field === 'avatar') {
         const base64String: string = value
 
@@ -76,7 +78,7 @@ class UserService {
           const contentType = base64String.split(';')[0].split('/')[1]
 
           const options = {
-            path: `avatars/avatar${user.id}`,
+            path: `avatars/avatar_${user.id}`,
             body,
             contentEncoding: 'base64',
             contentType: `image/${contentType}`,
@@ -103,10 +105,7 @@ class UserService {
 
   public static async delete(options: DeleteOptions) {
     await AuthTokenService.delete({ user_id: options.id })
-    // delete chat-party by user
-    // ???delete chats created by user???
-    // delete folder-party by user
-    // delete folders by user
+    
     await DataBase.models.User.destroy({ where: { id: options.id } })
   }
 

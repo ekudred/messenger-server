@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 
 import ErrorAPI from '../exceptions/ErrorAPI'
-import TokenService from '../services/token.service'
+import TokenService from '../services/internal/token.service'
 
 function authMiddleware(permittedRoles: string[]) {
   return function (req: Request, res: Response, next: NextFunction) {

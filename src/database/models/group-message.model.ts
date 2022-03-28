@@ -1,21 +1,20 @@
-import { Model, Table, Column, IsUUID, PrimaryKey, ForeignKey, BelongsTo } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, BelongsTo, DataType, Default } from 'sequelize-typescript'
 
 import User from './user.model'
 import Group from './group.model'
 
 @Table({ tableName: 'group_messages' })
 class GroupMessage extends Model<GroupMessage> {
-  @IsUUID(4)
-  @PrimaryKey
-  @Column
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
   @ForeignKey(() => User)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare user_id: string
 
   @ForeignKey(() => Group)
-  @Column
+  @Column({ type: DataType.UUID, primaryKey: true })
   declare group_id: string
 
   @Column
@@ -28,45 +27,3 @@ class GroupMessage extends Model<GroupMessage> {
 }
 
 export default GroupMessage
-
-// import { DataTypes, Model } from '@sequelize/core'
-
-// import sequelize from '../sequelize'
-
-// interface GroupMessageAttributes {
-//   id: string
-//   group_id: string
-//   user_id: string
-//   content: string
-// }
-
-// class GroupMessage extends Model<GroupMessageAttributes> {
-//   declare id: string
-//   declare group_id: string
-//   declare user_id: string
-//   declare content: string
-// }
-
-// GroupMessage.init(
-//   {
-//     id: {
-//       type: DataTypes.UUID,
-//       primaryKey: true,
-//     },
-//     group_id: {
-//       type: DataTypes.UUID,
-//     },
-//     user_id: {
-//       type: DataTypes.UUID,
-//     },
-//     content: {
-//       type: DataTypes.STRING,
-//     },
-//   },
-//   {
-//     tableName: 'group_messages',
-//     sequelize,
-//   }
-// )
-
-// export default GroupMessage
