@@ -24,6 +24,9 @@ class DialogRoster extends Model<DialogRoster> {
 
   @BelongsTo(() => User)
   declare user: User
+
+  @BelongsTo(() => Dialog)
+  declare dialog: Dialog
 }
 
 export default DialogRoster

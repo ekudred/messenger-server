@@ -8,7 +8,7 @@ class Socket {
 
     useSocketServer(io, {
       controllers: [__dirname + '/socket-controllers/**/*.socket-controller.ts'],
-      // middlewares: []
+      middlewares: [__dirname + '/middlewares/socket-controllers/auth.middleware.ts'],
     })
 
     console.log(chalk.magenta('Socket.io'), chalk.green('is up and running'))

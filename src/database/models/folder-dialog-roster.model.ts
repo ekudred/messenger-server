@@ -1,10 +1,10 @@
-import { Model, Table, Column, ForeignKey, BelongsTo, DefaultScope, DataType, Default } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, BelongsTo, DefaultScope, DataType, Default, HasOne } from 'sequelize-typescript'
 
 import Folder from './folder.model'
 import Dialog from './dialog.model'
 
 @DefaultScope(() => ({
-  include: [Dialog],
+  include: [{ model: Dialog }],
 }))
 @Table({ tableName: 'folder_dialog_roster' })
 class FolderDialogRoster extends Model<FolderDialogRoster> {
@@ -21,6 +21,9 @@ class FolderDialogRoster extends Model<FolderDialogRoster> {
   declare dialog_id: string
 
   // Associations
+
+  @BelongsTo(() => Folder)
+  declare folder: Folder
 
   @BelongsTo(() => Dialog)
   declare dialog: Dialog

@@ -22,6 +22,9 @@ class GroupMessage extends Model<GroupMessage> {
 
   // Associations
 
+  @BelongsTo(() => User)
+  declare user: User
+
   @BelongsTo(() => Group)
   declare group: Group
 }

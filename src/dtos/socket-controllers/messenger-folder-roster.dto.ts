@@ -2,7 +2,7 @@ import { IsString, ValidateNested, Matches } from 'class-validator'
 
 import { RegExpFolderName } from '../../utils/constants'
 
-export class CreateDTO {
+export class CreateFolderDTO {
   @IsString()
   public userID!: string
 
@@ -17,7 +17,7 @@ export class CreateDTO {
   public groups!: { id: string }[]
 }
 
-export class EditDTO {
+export class EditFolderDTO {
   @IsString()
   public folderID!: string
 
@@ -26,12 +26,12 @@ export class EditDTO {
   public folderName!: string
 }
 
-export class FindAllDTO {
+export class GetFoldersDTO {
   @IsString()
   public userID!: string
 }
 
-export class DeleteDTO {
+export class DeleteFolderDTO {
   @IsString()
   public folderID!: string
 

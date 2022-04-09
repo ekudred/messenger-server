@@ -4,7 +4,7 @@ import Group from './group.model'
 import User from './user.model'
 
 @DefaultScope(() => ({
-  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }]
+  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }],
 }))
 @Table({ tableName: 'group_roster' })
 class GroupRoster extends Model<GroupRoster> {
@@ -24,6 +24,9 @@ class GroupRoster extends Model<GroupRoster> {
 
   @BelongsTo(() => User)
   declare user: User
+
+  @BelongsTo(() => Group)
+  declare group: Group
 }
 
 export default GroupRoster

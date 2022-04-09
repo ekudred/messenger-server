@@ -1,21 +1,29 @@
 import { Model, Table, Column, Unique, IsEmail, Is, Default, AllowNull, DataType, HasMany, Scopes } from 'sequelize-typescript'
+import { Op } from 'sequelize'
 
 import AuthToken from './auth-token.model'
 import Folder from './folder.model'
-import Dialog from './dialog.model'
 import DialogRoster from './dialog-roster.model'
 import DialogMessage from './dialog-message.model'
 import Group from './group.model'
 import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
 
-import { RegExpUserName, RegExpFullName, RegExpDate, RegExpPhoneNumber, AuthRoles, AuthRolesArray } from '../../utils/constants'
+import { RegExpUserName, RegExpFullName, RegExpDate, RegExpPhoneNumber, AuthRoles, AuthRolesArray, defaultAvatarImage } from '../../utils/constants'
+import UserDialogRoster from './user-dialog-roster.model'
+import UserGroupRoster from './user-group-roster.model'
 
 @Scopes(() => ({
-  protectedAttributes: {
-    attributes: {
-      exclude: ['password', 'email', 'phone'],
-    },
+  safeAttributes: {
+    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'],
+  },
+  search: value => {
+    return {
+      where: {
+        username: { [Op.like]: `%${value}%` },
+      },
+      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'],
+    }
   },
 }))
 @Table({ tableName: 'users' })
@@ -52,7 +60,7 @@ class User extends Model<User> {
   @Column({ type: DataType.STRING })
   declare phone: string
 
-  @AllowNull
+  @Default(defaultAvatarImage)
   @Column({ type: DataType.STRING })
   declare avatar: string
 
@@ -75,8 +83,8 @@ class User extends Model<User> {
   @HasMany(() => Folder)
   declare folders: Folder[]
 
-  @HasMany(() => Dialog)
-  declare dialogs: Dialog[]
+  @HasMany(() => UserDialogRoster)
+  declare dialogs: UserDialogRoster[]
 
   @HasMany(() => DialogRoster)
   declare dialog_roster: DialogRoster[]
@@ -84,8 +92,11 @@ class User extends Model<User> {
   @HasMany(() => DialogMessage)
   declare dialog_messages: DialogMessage[]
 
+  @HasMany(() => UserGroupRoster)
+  declare groups: UserGroupRoster[]
+
   @HasMany(() => Group)
-  declare groups: Group[]
+  declare created_groups: Group[]
 
   @HasMany(() => GroupRoster)
   declare group_roster: GroupRoster[]

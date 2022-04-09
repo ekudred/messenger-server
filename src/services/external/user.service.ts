@@ -11,17 +11,15 @@ import { UserDTO } from '../../dtos/common/user.dto'
 import { SignUpDTO } from '../../dtos/controllers/auth.dto'
 import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/controllers/profile.dto'
 
-import { defaultAvatarImage } from '../../utils/constants'
-
-interface CreateOptions extends SignUpDTO {}
-interface UpdateOptions extends EditDTO {
+interface CreateUserOptions extends SignUpDTO {}
+interface UpdateUserOptions extends EditDTO {
   [key: string]: any
 }
-interface DeleteOptions extends DeleteDTO {}
-interface ConfirmOptions extends ConfirmDTO {}
+interface DeleteUserOptions extends DeleteDTO {}
+interface ConfirmUserOptions extends ConfirmDTO {}
 
 class UserService {
-  public static async create(options: CreateOptions) {
+  public static async create(options: CreateUserOptions) {
     const { email, username, password } = options
 
     const checkUser = await DataBase.models.User.findOne({ where: { [Op.or]: [{ email }, { username }] } })
@@ -36,7 +34,6 @@ class UserService {
       password: hashPassword,
       email,
       username,
-      avatar: defaultAvatarImage,
       activation_link: activationLink,
     })
 
@@ -51,7 +48,7 @@ class UserService {
     return await DataBase.models.User.findAll()
   }
 
-  public static async edit(update: UpdateOptions, filter: object) {
+  public static async edit(update: UpdateUserOptions, filter: object) {
     const user = await DataBase.models.User.findOne({ where: filter })
 
     for (const field in update) {
@@ -103,13 +100,13 @@ class UserService {
     return new UserDTO(user)
   }
 
-  public static async delete(options: DeleteOptions) {
+  public static async delete(options: DeleteUserOptions) {
     await AuthTokenService.delete({ user_id: options.id })
-    
+
     await DataBase.models.User.destroy({ where: { id: options.id } })
   }
 
-  public static async confirm(options: ConfirmOptions) {
+  public static async confirm(options: ConfirmUserOptions) {
     const { id, password } = options
 
     const user = await DataBase.models.User.findOne({ where: { id } })

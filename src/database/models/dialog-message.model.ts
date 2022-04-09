@@ -22,6 +22,9 @@ class DialogMessage extends Model<DialogMessage> {
 
   // Associations
 
+  @BelongsTo(() => User)
+  declare user: User
+
   @BelongsTo(() => Dialog)
   declare dialog: Dialog
 }

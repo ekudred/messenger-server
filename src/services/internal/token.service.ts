@@ -15,7 +15,7 @@ class TokenService {
 
   public static verifyAccessToken(accessToken: string) {
     try {
-      const data = JWT.verify(accessToken, process.env.JWT_ACCESS_SECRET!)
+      const data: any = JWT.verify(accessToken, process.env.JWT_ACCESS_SECRET!)
 
       return data
     } catch (e) {
@@ -25,7 +25,7 @@ class TokenService {
 
   public static verifyRefreshToken(refreshToken: string) {
     try {
-      const data = JWT.verify(refreshToken, process.env.JWT_REFRESH_SECRET!)
+      const data: any = JWT.verify(refreshToken, process.env.JWT_REFRESH_SECRET!)
 
       return data
     } catch (e) {
