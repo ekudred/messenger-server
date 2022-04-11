@@ -8,11 +8,8 @@ import FolderGroupRoster from './folder-group-roster.model'
   attributes: {
     attributes: ['id', 'name', 'user_id'],
   },
-  dialogs: {
-    include: [{ model: FolderDialogRoster, attributes: ['id'] }],
-  },
-  groups: {
-    include: [{ model: FolderGroupRoster, attributes: ['id'] }],
+  roster: {
+    include: [{ model: FolderDialogRoster }, { model: FolderGroupRoster }],
   },
 }))
 @Table({ tableName: 'folders' })

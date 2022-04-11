@@ -21,7 +21,7 @@ export class CreateDialogDTO {
 
 export class CreateGroupDTO {
   @IsString()
-  public userID!: string
+  public creatorID!: string
 
   @IsString()
   public name!: string

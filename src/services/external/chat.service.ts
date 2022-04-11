@@ -53,17 +53,18 @@ class ChatService {
   public static async searchChats(options: SearchChatsOptions) {
     const { value, userID } = options
 
-    const userDialogs = await DataBase.models.UserDialogRoster.scope([{ method: ['search', value] }]).findAll({ where: { user_id: userID } })
+    const userDialogs = await DataBase.models.UserDialogRoster.scope(['dialog']).findAll({ where: { user_id: userID } })
     const dialogs = toPlainObject(userDialogs).map((userDialog: any) => transformDialog(userDialog.dialog, userID))
 
     const userGroups = await DataBase.models.UserGroupRoster.scope([{ method: ['search', value] }]).findAll({ where: { user_id: userID } })
     const groups = toPlainObject(userGroups).map((userGroup: any) => transformGroup(userGroup.group))
 
     const users = await DataBase.models.User.scope([{ method: ['search', value] }]).findAll({ where: { id: { [Op.not]: userID } } })
-    // const filteredUsers = users.filter((user: any) => dialogs.some((dialog: any) => dialog.companion.id !== user.id))
-    // console.log(filteredUsers)
-    console.log(dialogs)
-    return { dialogs, groups, users: toPlainObject(users) }
+    const filteredUsers = toPlainObject(users).filter((user: any) => !dialogs.some((dialog: any) => dialog.companion.id === user.id))
+
+    const filteredDialogs = dialogs.filter((dialog: any) => users.some((user: any) => dialog.companion.id === user.id))
+
+    return { users: filteredUsers, dialogs: filteredDialogs, groups }
   }
 
   public static async createDialog(options: CreateDialogOptions) {
@@ -89,16 +90,17 @@ class ChatService {
   }
 
   public static async createGroup(options: CreateGroupOptions) {
-    const { userID, name, roster } = options // + image
+    const { creatorID, name, roster } = options // + image
 
     if (roster.length < 2) throw ErrorAPI.badRequest('Membership is not enough')
 
-    const group = await DataBase.models.Group.create({ id: uuid.v4(), creator_id: userID, name })
+    const group = await DataBase.models.Group.create({ id: uuid.v4(), creator_id: creatorID, name })
+    const groupRoster = [{ userID: creatorID }, ...roster]
 
-    const userGroupRosterBulkOptions = roster.map(item => ({ id: uuid.v4(), group_id: group.id, user_id: item.userID }))
+    const userGroupRosterBulkOptions = groupRoster.map(item => ({ id: uuid.v4(), group_id: group.id, user_id: item.userID }))
     await DataBase.models.UserGroupRoster.bulkCreate(userGroupRosterBulkOptions)
 
-    const groupRosterBulkOptions = roster.map(item => ({ id: uuid.v4(), group_id: group.id, user_id: item.userID }))
+    const groupRosterBulkOptions = groupRoster.map(item => ({ id: uuid.v4(), group_id: group.id, user_id: item.userID }))
     await DataBase.models.GroupRoster.bulkCreate(groupRosterBulkOptions)
 
     const createdUserGroup = await DataBase.models.UserGroupRoster.scope(['group']).findOne({ where: { group_id: group.id } })

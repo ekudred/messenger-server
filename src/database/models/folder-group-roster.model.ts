@@ -1,10 +1,10 @@
-import { Model, Table, Column, ForeignKey, BelongsTo, DefaultScope, Default, DataType, HasOne } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, BelongsTo, DefaultScope, Scopes, Default, DataType } from 'sequelize-typescript'
 
 import Folder from './folder.model'
 import Group from './group.model'
 
 @DefaultScope(() => ({
-  include: [{ model: Group }],
+  include: [{ model: Group, include: ['roster', 'creator'] }],
 }))
 @Table({ tableName: 'folder_group_roster' })
 class FolderGroupRoster extends Model<FolderGroupRoster> {

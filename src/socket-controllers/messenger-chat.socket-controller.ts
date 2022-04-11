@@ -23,6 +23,7 @@ class MessengerChatController {
       const dialog = await ChatService.createDialog(message)
 
       io.sockets.to(socket.handshake.auth.user.id).emit('messenger_chat/created_dialog', dialog)
+      // io.sockets.to(message.companionID).emit('messenger_chat/created_dialog', dialog)
     } catch (error: any) {
       console.error(error)
       socket.emit('messenger_chat/created_dialog', { error: { message: error.message } })
@@ -35,6 +36,9 @@ class MessengerChatController {
       const group = await ChatService.createGroup(message)
 
       io.sockets.to(socket.handshake.auth.user.id).emit('messenger_chat/created_group', group)
+      // message.roster.forEach(item => {
+      //   io.sockets.to(item.userID).emit('messenger_chat/created_group', group)
+      // })
     } catch (error: any) {
       console.error(error)
       socket.emit('messenger_chat/created_group', { error: { message: error.message } })
