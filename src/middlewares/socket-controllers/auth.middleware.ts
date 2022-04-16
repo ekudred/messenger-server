@@ -17,9 +17,7 @@ export class AuthSocketMiddleware implements MiddlewareInterface {
       
       next()
     } catch (error: any) {
-      console.log(error)
-
-      next()
+      next(error)
     }
   }
 }

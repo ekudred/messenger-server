@@ -24,6 +24,12 @@ export class EditFolderDTO {
   @IsString()
   @Matches(RegExpFolderName, { message: 'Folder name is invalid' })
   public folderName!: string
+
+  @ValidateNested()
+  public roster!: {
+    deleted: { dialogs: { id: string }[]; groups: { id: string }[] }
+    added: { dialogs: { id: string }[]; groups: { id: string }[] }
+  }
 }
 
 export class GetFoldersDTO {

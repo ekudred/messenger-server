@@ -3,7 +3,7 @@ import 'reflect-metadata'
 
 import UserService from '../services/external/user.service'
 import { EditDTO, FindDTO, DeleteDTO, ConfirmDTO } from '../dtos/controllers/profile.dto'
-import authMiddleware from '../middlewares/controllers/auth.middleware'
+import { authMiddleware } from '../middlewares/controllers/auth.middleware'
 
 import { AuthRoles } from '../utils/constants'
 

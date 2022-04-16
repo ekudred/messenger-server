@@ -4,7 +4,7 @@ import 'reflect-metadata'
 
 import AuthService from '../services/external/auth.service'
 import { SignUpDTO, SignInDTO, RefreshDTO } from '../dtos/controllers/auth.dto'
-import authMiddleware from '../middlewares/controllers/auth.middleware'
+import { authMiddleware } from '../middlewares/controllers/auth.middleware'
 
 import { cookieOptionsToken, AuthRoles } from '../utils/constants'
 

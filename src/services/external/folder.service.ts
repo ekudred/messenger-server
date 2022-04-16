@@ -14,7 +14,7 @@ interface DeleteFolderOptions extends DeleteFolderDTO {}
 class FolderService {
   public static async create(options: CreateFolderOptions) {
     const { userID, name, dialogs, groups } = options
-    
+
     const checkFolder = await DataBase.models.Folder.findOne({ where: { user_id: userID, name } })
     if (checkFolder) throw ErrorAPI.badRequest(`You already have a folder with name "${name}"`)
 
@@ -55,16 +55,44 @@ class FolderService {
   }
 
   public static async edit(options: EditFolderOptions) {
-    const { folderID, folderName } = options
+    const { folderID, folderName, roster } = options
 
     const folder = await DataBase.models.Folder.scope(['attributes', 'roster']).findOne({ where: { id: folderID } })
 
-    if (folder.name === folderName) throw ErrorAPI.badRequest('The folder name must not be repeated')
-    folder.name = folderName
+    if (folder.name !== folderName) {
+      folder.name = folderName
+    }
+
+    if (roster.deleted.dialogs.length !== 0) {
+      await DataBase.models.FolderDialogRoster.destroy({
+        where: { dialog_id: { [Op.or]: roster.deleted.dialogs.map((item: any) => item.id) }, folder_id: folder.id },
+      })
+    }
+    if (roster.deleted.groups.length !== 0) {
+      await DataBase.models.FolderGroupRoster.destroy({
+        where: { group_id: { [Op.or]: roster.deleted.groups.map((item: any) => item.id) }, folder_id: folder.id },
+      })
+    }
+    if (roster.added.dialogs.length !== 0) {
+      const dialogsBulkOptions = roster.added.dialogs.map((dialog: any) => ({ id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id }))
+      await DataBase.models.FolderDialogRoster.bulkCreate(dialogsBulkOptions)
+    }
+    if (roster.added.groups.length !== 0) {
+      const groupsBulkOptions = roster.added.groups.map((group: any) => ({ id: uuid.v4(), folder_id: folder.id, group_id: group.id }))
+      await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
+    }
 
     folder.save()
 
-    const transformedFolder = toPlainObject({ id: folder.id, name: folder.name, roster: { dialogs: [], groups: [] } })
+    const editedFolder = await DataBase.models.Folder.scope(['attributes', 'roster']).findOne({ where: { id: folderID } })
+    const transformedFolder = toPlainObject({
+      id: editedFolder.id,
+      name: editedFolder.name,
+      roster: {
+        dialogs: editedFolder.dialogs.map((folderDialog: any) => transformDialog(folderDialog.dialog, editedFolder.user_id)),
+        groups: editedFolder.groups.map((folderGroup: any) => transformGroup(folderGroup.group)),
+      },
+    })
 
     return { folder: transformedFolder }
   }
