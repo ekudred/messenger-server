@@ -7,8 +7,7 @@ class Socket {
     const io = require('socket.io')(server, { cors: { origin: process.env.CLIENT_URL, credentials: true } })
 
     useSocketServer(io, {
-      controllers: [__dirname + '/socket-controllers/**/*.socket-controller.ts'],
-      middlewares: [__dirname + '/middlewares/socket-controllers/auth.middleware.ts'],
+      controllers: [__dirname + '/controllers/socket/*.socket-controller.ts'],
     })
 
     console.log(chalk.magenta('Socket.io'), chalk.green('is up and running'))

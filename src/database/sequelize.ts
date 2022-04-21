@@ -9,7 +9,7 @@ const initSequelize = (config: Config) => {
     dialect: 'postgres',
     host,
     port,
-    models: [__dirname + '/models/**/*.model.ts'],
+    models: [__dirname + '/models/*.model.ts'],
     logging,
   })
 

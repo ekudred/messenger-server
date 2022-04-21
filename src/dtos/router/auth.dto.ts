@@ -24,12 +24,4 @@ export class SignInDTO {
   @IsString()
   @Matches(RegExpPassword, { message: 'Password is invalid' })
   public password!: string
-
-  @IsString()
-  public clientID!: string
-}
-
-export class RefreshDTO {
-  @IsString()
-  public clientID!: string
 }

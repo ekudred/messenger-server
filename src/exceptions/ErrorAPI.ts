@@ -9,7 +9,7 @@ function staticImplements<T>() {
 }
 
 @staticImplements<ErrorAPIStatic>()
-class ErrorAPI extends Error implements ErrorAPI {
+class ErrorAPI extends Error {
   public status: number
   public errors: string[]
 

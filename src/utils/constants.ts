@@ -2,11 +2,12 @@ import { CookieOptions } from 'express'
 
 // Auth
 
-export enum AuthRoles {
+export enum Roles {
   USER = 'USER',
-  ADMIN = 'ADMIN',
+  ADMIN = 'ADMIN'
 }
-export const AuthRolesArray = [AuthRoles.USER, AuthRoles.ADMIN]
+export const rolesArray = [Roles.USER, Roles.ADMIN]
+export const authRolesArray = [Roles.USER, Roles.ADMIN]
 export const defaultAvatarImage = 'https://messenger-pet-project.s3.eu-central-1.amazonaws.com/avatars/avatar_default.png'
 
 export const cookieOptionsToken: CookieOptions = { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none', secure: true }

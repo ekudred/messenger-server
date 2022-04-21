@@ -6,16 +6,19 @@ import AuthTokenService from './auth-token.service'
 import UserService from './user.service'
 import MailService from '../internal/mail.service'
 import { UserDTO } from '../../dtos/common/user.dto'
-import { SignInDTO, SignUpDTO, RefreshDTO } from '../../dtos/controllers/auth.dto'
+import { SignInDTO, SignUpDTO } from '../../dtos/router/auth.dto'
 import { getActivationMailOptions } from '../../utils/mail-options'
 
 interface SignUpOptions extends SignUpDTO {}
-interface SignInOptions extends SignInDTO {}
+interface SignInOptions extends SignInDTO {
+  clientID: string
+}
 interface SignOutOptions {
   refreshToken: string
 }
-interface RefreshOptions extends RefreshDTO {
+interface RefreshOptions {
   refreshToken: string
+  clientID: string
 }
 interface ActiveOptions {
   activationLink: string

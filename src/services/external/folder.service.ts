@@ -2,7 +2,7 @@ const uuid = require('uuid')
 import { Op } from 'sequelize'
 
 import DataBase from '../../database'
-import { EditFolderDTO, CreateFolderDTO, GetFoldersDTO, DeleteFolderDTO } from '../../dtos/socket-controllers/messenger-folder-roster.dto'
+import { EditFolderDTO, CreateFolderDTO, GetFoldersDTO, DeleteFolderDTO } from '../../dtos/socket/folder-roster.dto'
 import ErrorAPI from '../../exceptions/ErrorAPI'
 import { toPlainObject, transformDialog, transformGroup } from '../../utils/helpers'
 

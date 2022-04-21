@@ -8,8 +8,8 @@ import DataBase from '../../database'
 import Storage from '../../storage'
 
 import { UserDTO } from '../../dtos/common/user.dto'
-import { SignUpDTO } from '../../dtos/controllers/auth.dto'
-import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/controllers/profile.dto'
+import { SignUpDTO } from '../../dtos/router/auth.dto'
+import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/router/profile.dto'
 
 interface CreateUserOptions extends SignUpDTO {}
 interface UpdateUserOptions extends EditDTO {

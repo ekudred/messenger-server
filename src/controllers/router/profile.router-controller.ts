@@ -1,14 +1,14 @@
 import { JsonController, Body, Post, UseBefore } from 'routing-controllers'
 import 'reflect-metadata'
 
-import UserService from '../services/external/user.service'
-import { EditDTO, FindDTO, DeleteDTO, ConfirmDTO } from '../dtos/controllers/profile.dto'
-import { authMiddleware } from '../middlewares/controllers/auth.middleware'
+import UserService from '../../services/external/user.service'
+import { EditDTO, FindDTO, DeleteDTO, ConfirmDTO } from '../../dtos/router/profile.dto'
+import { authRouterMiddleware } from '../../middlewares/router/auth.router-middleware'
 
-import { AuthRoles } from '../utils/constants'
+import { authRolesArray } from '../../utils/constants'
 
 @JsonController('/profile')
-@UseBefore(authMiddleware([AuthRoles.ADMIN, AuthRoles.USER]))
+@UseBefore(authRouterMiddleware(authRolesArray))
 class ProfileController {
   @Post('/find')
   async find(@Body() body: FindDTO) {

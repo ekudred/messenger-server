@@ -1,14 +1,21 @@
 import { IsOptional, IsString, ValidateNested } from 'class-validator'
 
-export class GetChatDTO {
-  @IsString()
-  public type!: string
-
-  @IsString()
-  public id!: string
-
+export class GetChatsDTO {
   @IsString()
   public userID!: string
+}
+
+export class GetDialogsDTO {
+  @IsString()
+  public userID!: string
+}
+
+export class SearchChatsDTO {
+  @IsString()
+  public userID!: string
+
+  @IsString()
+  public value!: string
 }
 
 export class CreateDialogDTO {

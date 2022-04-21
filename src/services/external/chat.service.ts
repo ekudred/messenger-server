@@ -2,8 +2,8 @@ const uuid = require('uuid')
 import { Op } from 'sequelize'
 
 import DataBase from '../../database'
-import { GetChatsDTO, SearchChatsDTO, GetDialogsDTO } from '../../dtos/socket-controllers/messenger-chat-roster.dto'
-import { GetChatDTO, CreateDialogDTO, CreateGroupDTO } from '../../dtos/socket-controllers/messenger-chat.dto'
+import { GetChatsDTO, SearchChatsDTO, GetDialogsDTO, CreateDialogDTO, CreateGroupDTO } from '../../dtos/socket/chat-roster.dto'
+import { GetChatDTO } from '../../dtos/socket/chat.dto'
 import ErrorAPI from '../../exceptions/ErrorAPI'
 
 import { toPlainObject, transformDialog, transformGroup } from '../../utils/helpers'

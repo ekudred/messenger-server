@@ -7,8 +7,7 @@ class Router {
     useExpressServer(app, {
       routePrefix: '/api',
       cors: { origin: process.env.CLIENT_URL, credentials: true },
-      controllers: [__dirname + '/controllers/**/*.controller.ts'],
-      // middlewares: [__dirname + '/middlewares/controllers/*.middleware.ts'],
+      controllers: [__dirname + '/controllers/router/*.router-controller.ts'],
     })
 
     console.log(chalk.magenta('Router'), chalk.green('is up and running'))

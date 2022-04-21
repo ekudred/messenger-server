@@ -4,7 +4,7 @@ import Dialog from './dialog.model'
 import User from './user.model'
 
 @DefaultScope(() => ({
-  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'] }],
+  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role'] }],
 }))
 @Table({ tableName: 'dialog_roster' })
 class DialogRoster extends Model<DialogRoster> {

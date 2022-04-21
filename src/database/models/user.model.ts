@@ -9,20 +9,20 @@ import Group from './group.model'
 import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
 
-import { RegExpUserName, RegExpFullName, RegExpDate, RegExpPhoneNumber, AuthRoles, AuthRolesArray, defaultAvatarImage } from '../../utils/constants'
+import { RegExpUserName, RegExpFullName, RegExpDate, RegExpPhoneNumber, Roles, rolesArray, defaultAvatarImage } from '../../utils/constants'
 import UserDialogRoster from './user-dialog-roster.model'
 import UserGroupRoster from './user-group-roster.model'
 
 @Scopes(() => ({
   safeAttributes: {
-    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'],
+    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role'],
   },
   search: value => {
     return {
       where: {
         username: { [Op.like]: `%${value}%` },
       },
-      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar'],
+      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role'],
     }
   },
 }))
@@ -64,8 +64,8 @@ class User extends Model<User> {
   @Column({ type: DataType.STRING })
   declare avatar: string
 
-  @Default(AuthRoles.USER)
-  @Column({ type: DataType.ENUM(...AuthRolesArray) })
+  @Default(Roles.USER)
+  @Column({ type: DataType.ENUM(...rolesArray) })
   declare role: string
 
   @Column({ type: DataType.STRING })
