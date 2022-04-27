@@ -50,12 +50,3 @@ export class DeleteDTO {
   @IsString()
   public id!: string
 }
-
-export class ConfirmDTO {
-  @IsString()
-  public id!: string
-
-  @IsString()
-  @Matches(RegExpPassword, { message: 'Password is invalid' })
-  public password!: string
-}

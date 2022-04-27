@@ -1,12 +1,14 @@
-import { IsString } from 'class-validator'
+import { ChatType } from '../../utils/types'
 
-export class GetChatDTO {
-  @IsString()
-  public type!: string
+export interface GetChatDTO {
+  type: string
+  id: string
+  userID: string
+}
 
-  @IsString()
-  public id!: string
-
-  @IsString()
-  public userID!: string
+export interface SendMessageDTO {
+  userID: string
+  chatType: ChatType
+  chatID: string
+  text: string
 }

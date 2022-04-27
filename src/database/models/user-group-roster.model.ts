@@ -6,7 +6,7 @@ import User from './user.model'
 
 @Scopes(() => ({
   group: {
-    include: [{ model: Group, include: ['roster', 'creator'] }],
+    include: [{ model: Group, include: ['roster', 'messages', 'creator'] }],
   },
   search: value => {
     return {

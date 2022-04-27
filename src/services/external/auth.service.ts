@@ -5,8 +5,9 @@ import ErrorAPI from '../../exceptions/ErrorAPI'
 import AuthTokenService from './auth-token.service'
 import UserService from './user.service'
 import MailService from '../internal/mail.service'
+import DataBase from '../../database'
 import { UserDTO } from '../../dtos/common/user.dto'
-import { SignInDTO, SignUpDTO } from '../../dtos/router/auth.dto'
+import { SignInDTO, SignUpDTO, ConfirmDTO } from '../../dtos/router/auth.dto'
 import { getActivationMailOptions } from '../../utils/mail-options'
 
 interface SignUpOptions extends SignUpDTO {}
@@ -23,6 +24,7 @@ interface RefreshOptions {
 interface ActiveOptions {
   activationLink: string
 }
+interface ConfirmUserOptions extends ConfirmDTO {}
 
 class AuthService {
   public static async signUp(options: SignUpOptions) {
@@ -96,6 +98,15 @@ class AuthService {
 
     user.is_activated = true
     user.save()
+  }
+
+  public static async confirm(options: ConfirmUserOptions) {
+    const { id, password } = options
+
+    const user = await DataBase.models.User.findOne({ where: { id } })
+    const isPass = await bcrypt.compare(password, user.password)
+
+    return { isConfirm: isPass, user: { email: user.email, phone: user.phone } }
   }
 }
 

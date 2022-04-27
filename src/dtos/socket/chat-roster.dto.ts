@@ -1,42 +1,24 @@
-import { IsOptional, IsString, ValidateNested } from 'class-validator'
-
-export class GetChatsDTO {
-  @IsString()
-  public userID!: string
+export interface GetChatsDTO {
+  userID: string
 }
 
-export class GetDialogsDTO {
-  @IsString()
-  public userID!: string
+export interface GetDialogsDTO {
+  userID: string
 }
 
-export class SearchChatsDTO {
-  @IsString()
-  public userID!: string
-
-  @IsString()
-  public value!: string
+export interface SearchChatsDTO {
+  userID: string
+  value: string
 }
 
-export class CreateDialogDTO {
-  @IsString()
-  public userID!: string
-
-  @IsString()
-  public companionID!: string
+export interface CreateDialogDTO {
+  userID: string
+  companionID: string
 }
 
-export class CreateGroupDTO {
-  @IsString()
-  public creatorID!: string
-
-  @IsString()
-  public name!: string
-
-  @IsOptional()
-  @IsString()
-  public image!: string
-
-  @ValidateNested()
-  public roster!: { userID: string }[]
+export interface CreateGroupDTO {
+  creatorID: string
+  name: string
+  image: string
+  roster: { userID: string }[]
 }

@@ -17,8 +17,8 @@ class GroupMessage extends Model<GroupMessage> {
   @Column({ type: DataType.UUID, primaryKey: true })
   declare group_id: string
 
-  @Column
-  declare content: string
+  @Column({ type: DataType.STRING })
+  declare text: string
 
   // Associations
 

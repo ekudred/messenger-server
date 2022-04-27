@@ -16,7 +16,7 @@ import { defaultAvatarImage } from '../../utils/constants'
     include: [{ model: GroupMessage }],
   },
   creator: {
-    include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role'] }],
+    include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'] }],
   },
 }))
 @Table({ tableName: 'groups' })

@@ -3,28 +3,27 @@ import { JsonController, Param, CookieParam, Body, Post, Get, Res, Req, UseBefor
 import 'reflect-metadata'
 
 import AuthService from '../../services/external/auth.service'
-import { SignUpDTO, SignInDTO } from '../../dtos/router/auth.dto'
+import { SignUpDTO, SignInDTO, ConfirmDTO } from '../../dtos/router/auth.dto'
 import { authRouterMiddleware } from '../../middlewares/router/auth.router-middleware'
-
 import { cookieOptionsToken, authRolesArray } from '../../utils/constants'
 
 @JsonController('/auth')
 class AuthController {
   @Post('/sign-up')
   async signUp(@Body() body: SignUpDTO) {
-    const userData = await AuthService.signUp(body)
+    const data = await AuthService.signUp(body)
 
-    return userData
+    return data
   }
 
   @Post('/sign-in')
   async signIn(@Body() body: SignInDTO, @Req() req: Request, @Res() res: Response) {
     const clientID = req.headers['client-id'] as string
 
-    const userData = await AuthService.signIn({ ...body, clientID })
-    res.cookie('refreshToken', userData.refreshToken, cookieOptionsToken)
+    const data = await AuthService.signIn({ ...body, clientID })
+    res.cookie('refreshToken', data.refreshToken, cookieOptionsToken)
 
-    return userData
+    return data
   }
 
   @Post('/sign-out')
@@ -40,10 +39,10 @@ class AuthController {
   async refresh(@CookieParam('refreshToken') refreshToken: string, @Req() req: Request, @Res() res: Response) {
     const clientID = req.headers['client-id'] as string
 
-    const userData = await AuthService.refresh({ refreshToken, clientID })
-    res.cookie('refreshToken', userData.refreshToken, cookieOptionsToken)
+    const data = await AuthService.refresh({ refreshToken, clientID })
+    res.cookie('refreshToken', data.refreshToken, cookieOptionsToken)
 
-    return userData
+    return data
   }
 
   @Get('/activate/:link')
@@ -52,6 +51,14 @@ class AuthController {
     await AuthService.activate({ activationLink })
 
     return null
+  }
+
+  @Post('/confirm')
+  @UseBefore(authRouterMiddleware(authRolesArray))
+  async confirm(@Body() body: ConfirmDTO) {
+    const data = await AuthService.confirm(body)
+
+    return data
   }
 }
 

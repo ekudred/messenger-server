@@ -23,6 +23,10 @@ export function authSocketMiddleware(options: AuthSocketMiddlewareOptions) {
 
     socket.handshake.auth.user = user
 
+    if (!socket.rooms.has(user.id)) {
+      socket.join(user.id)
+    }
+
     return socket
   }
 }

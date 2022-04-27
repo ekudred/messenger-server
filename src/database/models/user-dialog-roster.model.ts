@@ -1,4 +1,4 @@
-import { Model, Table, Column, ForeignKey, Default, DataType, BelongsTo, DefaultScope, Scopes, HasOne } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, Default, DataType, BelongsTo, Scopes, HasOne } from 'sequelize-typescript'
 import { Op } from 'sequelize'
 
 import Dialog from './dialog.model'
@@ -6,7 +6,7 @@ import User from './user.model'
 
 @Scopes(() => ({
   dialog: {
-    include: [{ model: Dialog, include: ['roster'] }],
+    include: [{ model: Dialog, include: ['roster', 'messages'] }],
   },
   search: value => {
     return {

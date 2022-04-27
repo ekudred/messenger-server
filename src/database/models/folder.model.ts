@@ -5,9 +5,6 @@ import FolderDialogRoster from './folder-dialog-roster.model'
 import FolderGroupRoster from './folder-group-roster.model'
 
 @Scopes(() => ({
-  attributes: {
-    attributes: ['id', 'name', 'user_id'],
-  },
   roster: {
     include: [{ model: FolderDialogRoster }, { model: FolderGroupRoster }],
   },

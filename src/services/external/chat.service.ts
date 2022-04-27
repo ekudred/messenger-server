@@ -4,9 +4,10 @@ import { Op } from 'sequelize'
 import DataBase from '../../database'
 import { GetChatsDTO, SearchChatsDTO, GetDialogsDTO, CreateDialogDTO, CreateGroupDTO } from '../../dtos/socket/chat-roster.dto'
 import { GetChatDTO } from '../../dtos/socket/chat.dto'
+import { DialogDTO } from '../../dtos/common/dialog.dto'
+import { GroupDTO } from '../../dtos/common/group.dto'
+import { UserDTO } from '../../dtos/common/user.dto'
 import ErrorAPI from '../../exceptions/ErrorAPI'
-
-import { toPlainObject, transformDialog, transformGroup } from '../../utils/helpers'
 
 interface GetChatOptions extends GetChatDTO {}
 interface GetChatsOptions extends GetChatsDTO {}
@@ -21,11 +22,11 @@ class ChatService {
 
     switch (type) {
       case 'dialog':
-        const dialog = await DataBase.models.Dialog.scope(['roster']).findOne({ where: { id } })
-        return toPlainObject({ dialog: transformDialog(dialog, userID) })
+        const dialog = await DataBase.models.Dialog.scope(['roster', 'messages']).findOne({ where: { id } })
+        return { dialog: new DialogDTO(dialog, userID, true) }
       case 'group':
-        const group = await DataBase.models.Group.scope(['roster', 'creator']).findOne({ where: { id } })
-        return toPlainObject({ group: transformGroup(group) })
+        const group = await DataBase.models.Group.scope(['roster', 'messages', 'creator']).findOne({ where: { id } })
+        return { group: new GroupDTO(group, true) }
     }
   }
 
@@ -33,10 +34,10 @@ class ChatService {
     const { userID } = options
 
     const userDialogs = await DataBase.models.UserDialogRoster.scope(['dialog']).findAll({ where: { user_id: userID } })
-    const dialogs = toPlainObject(userDialogs).map((userDialog: any) => transformDialog(userDialog.dialog, userID))
+    const dialogs = userDialogs.map((userDialog: any) => new DialogDTO(userDialog.dialog, userID))
 
     const userGroups = await DataBase.models.UserGroupRoster.scope(['group']).findAll({ where: { user_id: userID } })
-    const groups = toPlainObject(userGroups).map((userGroup: any) => transformGroup(userGroup.group))
+    const groups = userGroups.map((userGroup: any) => new GroupDTO(userGroup.group))
 
     return { dialogs, groups }
   }
@@ -45,7 +46,7 @@ class ChatService {
     const { userID } = options
 
     const userDialogs = await DataBase.models.UserDialogRoster.scope(['dialog']).findAll({ where: { user_id: userID } })
-    const dialogs = toPlainObject(userDialogs).map((userDialog: any) => transformDialog(userDialog.dialog, userID))
+    const dialogs = userDialogs.map((userDialog: any) => new DialogDTO(userDialog.dialog, userID))
 
     return { dialogs }
   }
@@ -54,13 +55,15 @@ class ChatService {
     const { value, userID } = options
 
     const userDialogs = await DataBase.models.UserDialogRoster.scope(['dialog']).findAll({ where: { user_id: userID } })
-    const dialogs = toPlainObject(userDialogs).map((userDialog: any) => transformDialog(userDialog.dialog, userID))
+    const dialogs = userDialogs.map((userDialog: any) => new DialogDTO(userDialog.dialog, userID))
 
     const userGroups = await DataBase.models.UserGroupRoster.scope([{ method: ['search', value] }]).findAll({ where: { user_id: userID } })
-    const groups = toPlainObject(userGroups).map((userGroup: any) => transformGroup(userGroup.group))
+    const groups = userGroups.map((userGroup: any) => new GroupDTO(userGroup.group))
 
     const users = await DataBase.models.User.scope([{ method: ['search', value] }]).findAll({ where: { id: { [Op.not]: userID } } })
-    const filteredUsers = toPlainObject(users).filter((user: any) => !dialogs.some((dialog: any) => dialog.companion.id === user.id))
+    const filteredUsers = users
+      .map((user: any) => new UserDTO(user))
+      .filter((user: any) => !dialogs.some((dialog: any) => dialog.companion.id === user.id))
 
     const filteredDialogs = dialogs.filter((dialog: any) => users.some((user: any) => dialog.companion.id === user.id))
 
@@ -86,7 +89,7 @@ class ChatService {
 
     const createdUserDialog = await DataBase.models.UserDialogRoster.scope(['dialog']).findOne({ where: { dialog_id: dialog.id } })
 
-    return { dialog: toPlainObject(transformDialog(createdUserDialog.dialog, userID)) }
+    return { dialog: new DialogDTO(createdUserDialog.dialog, userID) }
   }
 
   public static async createGroup(options: CreateGroupOptions) {
@@ -105,7 +108,7 @@ class ChatService {
 
     const createdUserGroup = await DataBase.models.UserGroupRoster.scope(['group']).findOne({ where: { group_id: group.id } })
 
-    return { group: toPlainObject(transformGroup(createdUserGroup.group)) }
+    return { group: new GroupDTO(createdUserGroup.group) }
   }
 }
 

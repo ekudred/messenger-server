@@ -9,14 +9,13 @@ import Storage from '../../storage'
 
 import { UserDTO } from '../../dtos/common/user.dto'
 import { SignUpDTO } from '../../dtos/router/auth.dto'
-import { ConfirmDTO, DeleteDTO, EditDTO } from '../../dtos/router/profile.dto'
+import { DeleteDTO, EditDTO } from '../../dtos/router/profile.dto'
 
 interface CreateUserOptions extends SignUpDTO {}
 interface UpdateUserOptions extends EditDTO {
   [key: string]: any
 }
 interface DeleteUserOptions extends DeleteDTO {}
-interface ConfirmUserOptions extends ConfirmDTO {}
 
 class UserService {
   public static async create(options: CreateUserOptions) {
@@ -104,15 +103,6 @@ class UserService {
     await AuthTokenService.delete({ user_id: options.id })
 
     await DataBase.models.User.destroy({ where: { id: options.id } })
-  }
-
-  public static async confirm(options: ConfirmUserOptions) {
-    const { id, password } = options
-
-    const user = await DataBase.models.User.findOne({ where: { id } })
-    const isPass = await bcrypt.compare(password, user.password)
-
-    return { isConfirm: isPass, user: { email: user.email, phone: user.phone } }
   }
 }
 
