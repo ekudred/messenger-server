@@ -17,11 +17,11 @@ class App {
     this.app = express()
     this.server = Server.create(this.app)
 
-    Router.create(this.app)
-    Socket.create(this.server)
-
     this.database = new DataBase()
     this.database.connect()
+
+    Router.create(this.app)
+    Socket.create(this.server)
   }
 
   public start() {

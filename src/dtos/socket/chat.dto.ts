@@ -7,6 +7,7 @@ export interface GetChatDTO {
 }
 
 export interface SendMessageDTO {
+  messageID: string
   userID: string
   chatType: ChatType
   chatID: string

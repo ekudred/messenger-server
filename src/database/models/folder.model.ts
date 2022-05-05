@@ -1,4 +1,4 @@
-import { Model, Table, Column, ForeignKey, HasMany, Scopes, Default, DataType, BelongsTo } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, HasMany, Scopes, Default, BelongsTo, DataType } from 'sequelize-typescript'
 
 import User from './user.model'
 import FolderDialogRoster from './folder-dialog-roster.model'

@@ -1,4 +1,4 @@
-import { Model, Table, Column, ForeignKey, DataType, Default, BelongsTo } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, Default, BelongsTo, DataType } from 'sequelize-typescript'
 
 import User from './user.model'
 
@@ -15,7 +15,7 @@ class AuthToken extends Model<AuthToken> {
   @Column({ type: DataType.STRING })
   declare client_id: string
 
-  @Column({ type: DataType.STRING(1234) })
+  @Column({ type: DataType.STRING(1024) })
   declare refresh_token: string
 
   // Associations

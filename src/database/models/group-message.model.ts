@@ -1,4 +1,4 @@
-import { Model, Table, Column, ForeignKey, BelongsTo, DataType, Default } from 'sequelize-typescript'
+import { Model, Table, Column, ForeignKey, BelongsTo, Default, DataType } from 'sequelize-typescript'
 
 import User from './user.model'
 import Group from './group.model'
@@ -17,7 +17,7 @@ class GroupMessage extends Model<GroupMessage> {
   @Column({ type: DataType.UUID, primaryKey: true })
   declare group_id: string
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING(1024) })
   declare text: string
 
   // Associations

@@ -10,12 +10,11 @@ import { authRolesArray } from '../../utils/constants'
 @SocketController('/chat')
 class ChatController {
   @OnConnect()
-  connection(@ConnectedSocket() socket: any) {}
+  connection(@ConnectedSocket() socket: any) {
+  }
 
   @OnDisconnect()
   disconnect(@ConnectedSocket() socket: any) {
-    console.log('disconnect')
-    socket.disconnect()
   }
 
   @OnMessage('chat:get')
@@ -23,10 +22,10 @@ class ChatController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chat:got_item', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'chat:got_item', arg: message => ({ error: { message } }) }] }
+      })
     ])
-    
+
     try {
       const data = await ChatService.getChat(message)
 
@@ -42,10 +41,10 @@ class ChatController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'message:sent_item', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'message:sent_item', arg: message => ({ error: { message } }) }] }
+      })
     ])
-
+    console.log(message)
     try {
       const data = await MessageService.send(message)
 

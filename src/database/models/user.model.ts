@@ -10,19 +10,17 @@ import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
 
 import { RegExpUserName, RegExpFullName, RegExpDate, RegExpPhoneNumber, Roles, rolesArray, defaultAvatarImage } from '../../utils/constants'
-import UserDialogRoster from './user-dialog-roster.model'
-import UserGroupRoster from './user-group-roster.model'
 
 @Scopes(() => ({
   safeAttributes: {
-    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role'],
+    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'],
   },
   search: value => {
     return {
       where: {
         username: { [Op.like]: `%${value}%` },
       },
-      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role'],
+      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'],
     }
   },
 }))
@@ -83,17 +81,11 @@ class User extends Model<User> {
   @HasMany(() => Folder)
   declare folders: Folder[]
 
-  @HasMany(() => UserDialogRoster)
-  declare dialogs: UserDialogRoster[]
-
   @HasMany(() => DialogRoster)
   declare dialog_roster: DialogRoster[]
 
   @HasMany(() => DialogMessage)
   declare dialog_messages: DialogMessage[]
-
-  @HasMany(() => UserGroupRoster)
-  declare groups: UserGroupRoster[]
 
   @HasMany(() => Group)
   declare created_groups: Group[]

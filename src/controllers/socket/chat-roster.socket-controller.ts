@@ -1,7 +1,21 @@
-import { SocketController, OnConnect, OnDisconnect, OnMessage, MessageBody, ConnectedSocket, SocketIO } from 'socket-controllers'
+import {
+  SocketController,
+  OnConnect,
+  OnDisconnect,
+  OnMessage,
+  MessageBody,
+  ConnectedSocket,
+  SocketIO
+} from 'socket-controllers'
 
 import ChatService from '../../services/external/chat.service'
-import { GetChatsDTO, GetDialogsDTO, SearchChatsDTO, CreateDialogDTO, CreateGroupDTO } from '../../dtos/socket/chat-roster.dto'
+import {
+  GetChatsDTO,
+  GetDialogsDTO,
+  SearchChatsDTO,
+  CreateDialogDTO,
+  CreateGroupDTO
+} from '../../dtos/socket/chat-roster.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
 import { authSocketMiddleware } from '../../middlewares/socket/auth.socket-middleware'
 import { authRolesArray } from '../../utils/constants'
@@ -9,18 +23,20 @@ import { authRolesArray } from '../../utils/constants'
 @SocketController('/chat_roster')
 class ChatRosterController {
   @OnConnect()
-  connection(@ConnectedSocket() socket: any) {}
+  connection(@ConnectedSocket() socket: any) {
+  }
 
   @OnDisconnect()
-  disconnect(@ConnectedSocket() socket: any) {}
+  disconnect(@ConnectedSocket() socket: any) {
+  }
 
   @OnMessage('chats:get')
   async getChats(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: GetChatsDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chats:got_list', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'chats:got_list', arg: message => ({ error: { message } }) }] }
+      })
     ])
 
     try {
@@ -41,8 +57,8 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chats:searched_list', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'chats:searched_list', arg: message => ({ error: { message } }) }] }
+      })
     ])
 
     try {
@@ -60,8 +76,8 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'dialogs:got_list', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'dialogs:got_list', arg: message => ({ error: { message } }) }] }
+      })
     ])
 
     try {
@@ -79,8 +95,8 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'dialog:created_item', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'dialog:created_item', arg: message => ({ error: { message } }) }] }
+      })
     ])
 
     try {
@@ -100,8 +116,8 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'group:created_item', arg: message => ({ error: { message } }) }] },
-      }),
+        emitAtError: { emits: [{ event: 'group:created_item', arg: message => ({ error: { message } }) }] }
+      })
     ])
 
     try {

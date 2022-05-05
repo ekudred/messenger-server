@@ -17,7 +17,7 @@ class DialogMessage extends Model<DialogMessage> {
   @Column({ type: DataType.UUID, primaryKey: true })
   declare dialog_id: string
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING(1024) })
   declare text: string
 
   // Associations

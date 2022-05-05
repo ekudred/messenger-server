@@ -4,7 +4,7 @@ import Folder from './folder.model'
 import Group from './group.model'
 
 @DefaultScope(() => ({
-  include: [{ model: Group, include: ['roster', 'creator'] }],
+  include: [{ model: Group, include: ['roster', 'creator'] }], // 'roster', 'messages', 'creator'
 }))
 @Table({ tableName: 'folder_group_roster' })
 class FolderGroupRoster extends Model<FolderGroupRoster> {

@@ -4,7 +4,6 @@ import User from './user.model'
 import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
 import FolderGroupRoster from './folder-group-roster.model'
-import UserGroupRoster from './user-group-roster.model'
 
 import { defaultAvatarImage } from '../../utils/constants'
 
@@ -34,15 +33,12 @@ class Group extends Model<Group> {
 
   @Default(defaultAvatarImage)
   @Column({ type: DataType.STRING })
-  declare image: string
+  declare avatar: string
 
   // Associations
 
   @BelongsTo(() => User)
   declare creator: User
-
-  @HasMany(() => UserGroupRoster)
-  declare user_roster: UserGroupRoster[]
 
   @HasMany(() => FolderGroupRoster)
   declare folder_roster: FolderGroupRoster[]

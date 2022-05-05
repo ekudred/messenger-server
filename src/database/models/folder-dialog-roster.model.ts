@@ -4,7 +4,7 @@ import Folder from './folder.model'
 import Dialog from './dialog.model'
 
 @DefaultScope(() => ({
-  include: [{ model: Dialog, include: ['roster'] }],
+  include: [{ model: Dialog, include: ['roster'] }], // 'roster', 'messages'
 }))
 @Table({ tableName: 'folder_dialog_roster' })
 class FolderDialogRoster extends Model<FolderDialogRoster> {

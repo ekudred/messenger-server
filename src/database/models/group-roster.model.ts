@@ -1,10 +1,45 @@
-import { Model, Table, Column, ForeignKey, Default, DataType, BelongsTo, DefaultScope } from 'sequelize-typescript'
+import {
+  Model,
+  Table,
+  Column,
+  ForeignKey,
+  Default,
+  DataType,
+  BelongsTo,
+  DefaultScope,
+  Scopes
+} from 'sequelize-typescript'
 
 import Group from './group.model'
 import User from './user.model'
+import { Op } from 'sequelize'
+import Dialog from './dialog.model'
 
+@Scopes(() => ({
+  group: {
+    include: [{ model: Group, include: ['roster'] }] // 'roster', 'messages', 'creator'
+  },
+  getGroup: value => {
+    return {
+      include: [{ model: Group, include: value }]
+    }
+  },
+  searchLikeName: value => {
+    return {
+      include: [
+        {
+          model: Group,
+          include: ['roster', 'creator'],
+          where: {
+            name: { [Op.like]: `%${value}%` },
+          },
+        },
+      ],
+    }
+  }
+}))
 @DefaultScope(() => ({
-  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'] }],
+  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'] }]
 }))
 @Table({ tableName: 'group_roster' })
 class GroupRoster extends Model<GroupRoster> {
