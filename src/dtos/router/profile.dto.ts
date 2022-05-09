@@ -1,5 +1,6 @@
 import { IsEmail, IsString, Matches, IsOptional } from 'class-validator'
 
+import { UpdateUserOptions, DeleteUserOptions } from '../../services/user/types'
 import { RegExpUserName, RegExpFullName, RegExpPhoneNumber, RegExpDate, RegExpPassword } from '../../utils/constants'
 
 export class FindDTO {
@@ -7,7 +8,7 @@ export class FindDTO {
   public id!: string
 }
 
-export class EditDTO {
+export class EditDTO implements UpdateUserOptions {
   @IsString()
   public id!: string
 
@@ -46,7 +47,7 @@ export class EditDTO {
   public password!: string
 }
 
-export class DeleteDTO {
+export class DeleteDTO implements DeleteUserOptions {
   @IsString()
   public id!: string
 }

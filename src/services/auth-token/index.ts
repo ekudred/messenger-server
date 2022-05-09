@@ -1,8 +1,8 @@
-import TokenService from '../internal/token.service'
+import TokenService from '../token'
 import DataBase from '../../database'
 
 class AuthTokenService extends TokenService {
-  public static async create(checkTokenFilter: object, refreshToken: string, clientID: string, doc: any) {
+  public static async createToken(checkTokenFilter: object, refreshToken: string, clientID: string, doc: any) {
     const data = await DataBase.models.AuthToken.findOne({ where: checkTokenFilter })
 
     if (data) {
@@ -18,15 +18,15 @@ class AuthTokenService extends TokenService {
     return token
   }
 
-  public static async find(filter: object) {
+  public static async findToken(filter: object) {
     return await DataBase.models.AuthToken.findOne({ where: filter })
   }
 
-  public static async update(update: object, filter: object) {
+  public static async updateToken(update: object, filter: object) {
     await DataBase.models.AuthToken.update(update, { where: filter })
   }
 
-  public static async delete(filter: object) {
+  public static async deleteToken(filter: object) {
     return await DataBase.models.AuthToken.destroy({ where: filter })
   }
 }

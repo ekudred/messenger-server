@@ -1,13 +1,23 @@
-import { SocketController, OnConnect, OnDisconnect, OnMessage, MessageBody, ConnectedSocket } from 'socket-controllers'
+import {
+  SocketController,
+  OnConnect,
+  OnDisconnect,
+  OnMessage,
+  MessageBody,
+  ConnectedSocket,
+  SocketIO
+} from 'socket-controllers'
 
-import ChatService from '../../services/external/chat.service'
-import MessageService from '../../services/external/message.service'
-import { GetChatDTO, SendMessageDTO } from '../../dtos/socket/chat.dto'
+import ChatService from '../../services/chat'
+import MessageService from '../../services/message'
+import { JoinChatDTO, LeaveChatDTO, SendMessageDTO } from '../../dtos/socket/chat.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
 import { authSocketMiddleware } from '../../middlewares/socket/auth.socket-middleware'
 import { authRolesArray } from '../../utils/constants'
 
-@SocketController('/chat')
+const namespace = '/chat'
+
+@SocketController(namespace)
 class ChatController {
   @OnConnect()
   connection(@ConnectedSocket() socket: any) {
@@ -17,41 +27,60 @@ class ChatController {
   disconnect(@ConnectedSocket() socket: any) {
   }
 
-  @OnMessage('chat:get')
-  async getChat(@ConnectedSocket() connectedSocket: any, @MessageBody() message: GetChatDTO) {
+  @OnMessage('chat:join')
+  async joinChat(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: JoinChatDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chat:got_item', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'chat:joined', arg: message => ({ error: { message } }) }] }
       })
     ])
 
     try {
       const data = await ChatService.getChat(message)
 
-      socket.emit('chat:got_item', data)
+      socket.join(`chat_room=${data.chat.id}`)
+      socket.emit('chat:joined', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('chat:got_item', { error: { message: error.message } })
+      socket.emit('chat:joined', { error: { message: error.message } })
+    }
+  }
+
+  @OnMessage('chat:leave')
+  async leaveChat(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: LeaveChatDTO) {
+    const socket = useSocketMiddleware(connectedSocket, [
+      authSocketMiddleware({
+        permittedRoles: authRolesArray,
+        emitAtError: { emits: [{ event: 'chat:left', arg: message => ({ error: { message } }) }] }
+      })
+    ])
+
+    try {
+      socket.leave(`chat_room=${message.id}`)
+      socket.emit('chat:left', message)
+    } catch (error: any) {
+      console.error(error)
+      socket.emit('chat:left', { error: { message: error.message } })
     }
   }
 
   @OnMessage('message:send')
-  async sendMessage(@ConnectedSocket() connectedSocket: any, @MessageBody() message: SendMessageDTO) {
+  async sendMessage(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: SendMessageDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'message:sent_item', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'message:sent', arg: message => ({ error: { message } }) }] }
       })
     ])
-    console.log(message)
+    // приходит еще date в message !!!!!!!
     try {
-      const data = await MessageService.send(message)
+      const data = await MessageService.sendMessage(message)
 
-      socket.emit('message:sent_item', data)
+      io.of(namespace).to(`chat_room=${data.message.chatID}`).emit('message:sent', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('message:sent_item', { error: { message: error.message } })
+      socket.emit('message:sent', { error: { message: error.message } })
     }
   }
 }

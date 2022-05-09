@@ -1,8 +1,9 @@
 import { IsEmail, IsString, Matches } from 'class-validator'
 
+import { SignUpOptions, ConfirmUserOptions } from '../../services/auth/types'
 import { RegExpPassword, RegExpUserName } from '../../utils/constants'
 
-export class SignUpDTO {
+export class SignUpDTO implements SignUpOptions {
   @IsString()
   @Matches(RegExpUserName, { message: 'Username is invalid' })
   public username!: string
@@ -26,7 +27,7 @@ export class SignInDTO {
   public password!: string
 }
 
-export class ConfirmDTO {
+export class ConfirmUserDTO implements ConfirmUserOptions {
   @IsString()
   public id!: string
 

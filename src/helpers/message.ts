@@ -1,6 +1,7 @@
-import { ChatType } from '../../utils/types'
+import { Message } from '../services/message/types'
+import { ChatType } from '../services/chat/types'
 
-export class MessageDTO {
+class TransformedMessage implements Message {
   public id: string
   public userID: string
   public chatType: ChatType
@@ -19,3 +20,5 @@ export class MessageDTO {
     this.updatedAt = object.updatedAt
   }
 }
+
+export default TransformedMessage

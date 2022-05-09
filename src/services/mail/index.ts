@@ -1,12 +1,6 @@
 import nodemailer, { Transporter } from 'nodemailer'
 
-interface SendOptions {
-  from: string
-  to: string
-  subject: string
-  text: string
-  html: string
-}
+import { SendOptions } from './types'
 
 class MailService {
   public transporter: Transporter
@@ -20,14 +14,14 @@ class MailService {
         user: process.env.MAIL_USER,
         refreshToken: process.env.MAIL_REFRESH_TOKEN,
         clientId: process.env.MAIL_CLIENT_ID,
-        clientSecret: process.env.MAIL_CLIENT_SECRET,
-      },
+        clientSecret: process.env.MAIL_CLIENT_SECRET
+      }
     })
 
     this.subscription()
   }
 
-  public async send(options: SendOptions) {
+  public async sendMail(options: SendOptions) {
     await this.transporter.sendMail({ ...options })
   }
 

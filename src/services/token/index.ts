@@ -1,9 +1,6 @@
 import JWT from 'jsonwebtoken'
 
-interface expiresInOptions {
-  accessToken: string
-  refreshToken: string
-}
+import { expiresInOptions } from './types'
 
 class TokenService {
   public static generateTokens(payload: string | object | Buffer, expiresIn: expiresInOptions) {

@@ -1,24 +1,22 @@
-export interface CreateFolderDTO {
-  userID: string
-  name: string
-  dialogs: { id: string }[]
-  groups: { id: string }[]
+import {
+  CreateFolderOptions,
+  EditFolderOptions,
+  GetFoldersOptions,
+  DeleteFolderOptions
+} from '../../services/folder/types'
+import { GetChatsOptions } from '../../services/chat/types'
+
+export interface CreateFolderDTO extends CreateFolderOptions {
 }
 
-export interface EditFolderDTO {
-  folderID: string
-  folderName: string
-  roster: {
-    deleted: { dialogs: { id: string }[]; groups: { id: string }[] }
-    added: { dialogs: { id: string }[]; groups: { id: string }[] }
-  }
+export interface EditFolderDTO extends EditFolderOptions {
 }
 
-export interface GetFoldersDTO {
-  userID: string
+export interface GetFoldersDTO extends GetFoldersOptions {
 }
 
-export interface DeleteFolderDTO {
-  folderID: string
-  folderName: string
+export interface DeleteFolderDTO extends DeleteFolderOptions {
+}
+
+export interface GetChatsDTO extends GetChatsOptions {
 }

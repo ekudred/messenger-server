@@ -1,24 +1,23 @@
-export interface GetChatsDTO {
-  userID: string
+import {
+  CreateDialogOptions,
+  CreateGroupOptions,
+  GetChatsOptions,
+  GetDialogsOptions,
+  SearchChatsOptions
+} from '../../services/chat/types'
+
+export interface GetChatsDTO extends GetChatsOptions {
 }
 
-export interface GetDialogsDTO {
-  userID: string
+export interface GetDialogsDTO extends GetDialogsOptions {
 }
 
-export interface SearchChatsDTO {
-  userID: string
-  value: string
+export interface SearchChatsDTO extends SearchChatsOptions {
 }
 
-export interface CreateDialogDTO {
-  userID: string
-  companionID: string
+export interface CreateDialogDTO extends CreateDialogOptions {
 }
 
-export interface CreateGroupDTO {
-  creatorID: string
-  name: string
-  image: string
-  roster: { userID: string }[]
+export interface CreateGroupDTO extends CreateGroupOptions {
+
 }

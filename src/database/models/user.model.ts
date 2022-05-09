@@ -1,4 +1,16 @@
-import { Model, Table, Column, Unique, IsEmail, Is, Default, AllowNull, DataType, HasMany, Scopes } from 'sequelize-typescript'
+import {
+  Model,
+  Table,
+  Column,
+  Unique,
+  IsEmail,
+  Is,
+  Default,
+  AllowNull,
+  DataType,
+  HasMany,
+  Scopes
+} from 'sequelize-typescript'
 import { Op } from 'sequelize'
 
 import AuthToken from './auth-token.model'
@@ -9,20 +21,28 @@ import Group from './group.model'
 import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
 
-import { RegExpUserName, RegExpFullName, RegExpDate, RegExpPhoneNumber, Roles, rolesArray, defaultAvatarImage } from '../../utils/constants'
+import {
+  RegExpUserName,
+  RegExpFullName,
+  RegExpDate,
+  RegExpPhoneNumber,
+  Roles,
+  rolesArray,
+  defaultAvatarImage
+} from '../../utils/constants'
 
 @Scopes(() => ({
   safeAttributes: {
-    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'],
+    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']
   },
   search: value => {
     return {
       where: {
-        username: { [Op.like]: `%${value}%` },
+        username: { [Op.like]: `%${value}%` }
       },
-      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'],
+      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']
     }
-  },
+  }
 }))
 @Table({ tableName: 'users' })
 class User extends Model<User> {

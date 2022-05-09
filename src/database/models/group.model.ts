@@ -9,14 +9,17 @@ import { defaultAvatarImage } from '../../utils/constants'
 
 @Scopes(() => ({
   roster: {
-    include: [{ model: GroupRoster }],
+    include: [{ model: GroupRoster }]
   },
   messages: {
-    include: [{ model: GroupMessage }],
+    include: [{ model: GroupMessage }]
   },
   creator: {
-    include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'] }],
-  },
+    include: [{
+      model: User,
+      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']
+    }]
+  }
 }))
 @Table({ tableName: 'groups' })
 class Group extends Model<Group> {
@@ -40,14 +43,14 @@ class Group extends Model<Group> {
   @BelongsTo(() => User)
   declare creator: User
 
-  @HasMany(() => FolderGroupRoster)
-  declare folder_roster: FolderGroupRoster[]
-
   @HasMany(() => GroupRoster)
   declare roster: GroupRoster[]
 
   @HasMany(() => GroupMessage)
   declare messages: GroupMessage[]
+
+  @HasMany(() => FolderGroupRoster)
+  declare folder_roster: FolderGroupRoster[]
 }
 
 export default Group

@@ -1,15 +1,15 @@
-import { ChatType } from '../../utils/types'
+import { GetChatOptions } from '../../services/chat/types'
+import { ChatType } from '../../services/chat/types'
+import { SendMessageOptions } from '../../services/message/types'
 
-export interface GetChatDTO {
-  type: string
-  id: string
-  userID: string
+export interface JoinChatDTO extends GetChatOptions {
 }
 
-export interface SendMessageDTO {
-  messageID: string
-  userID: string
+export interface LeaveChatDTO {
+  type: ChatType
+  id: string
+}
+
+export interface SendMessageDTO extends SendMessageOptions {
   chatType: ChatType
-  chatID: string
-  text: string
 }

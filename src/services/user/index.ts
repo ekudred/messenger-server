@@ -3,22 +3,14 @@ const uuid = require('uuid')
 import { Op } from 'sequelize'
 
 import ErrorAPI from '../../exceptions/ErrorAPI'
-import AuthTokenService from './auth-token.service'
+import AuthTokenService from '../auth-token'
 import DataBase from '../../database'
 import Storage from '../../storage'
-
-import { UserDTO } from '../../dtos/common/user.dto'
-import { SignUpDTO } from '../../dtos/router/auth.dto'
-import { DeleteDTO, EditDTO } from '../../dtos/router/profile.dto'
-
-interface CreateUserOptions extends SignUpDTO {}
-interface UpdateUserOptions extends EditDTO {
-  [key: string]: any
-}
-interface DeleteUserOptions extends DeleteDTO {}
+import { CreateUserOptions, UpdateUserOptions, DeleteUserOptions } from './types'
+import User from '../../helpers/user'
 
 class UserService {
-  public static async create(options: CreateUserOptions) {
+  public static async createUser(options: CreateUserOptions) {
     const { email, username, password } = options
 
     const checkUser = await DataBase.models.User.findOne({ where: { [Op.or]: [{ email }, { username }] } })
@@ -33,27 +25,29 @@ class UserService {
       password: hashPassword,
       email,
       username,
-      activation_link: activationLink,
+      activation_link: activationLink
     })
 
-    return user
+    return { user }
   }
 
-  public static async find(filter: object) {
-    return await DataBase.models.User.findOne({ where: filter })
-  }
-
-  public static async findAll() {
-    return await DataBase.models.User.findAll()
-  }
-
-  public static async edit(update: UpdateUserOptions, filter: object) {
+  public static async findUser(filter: object) {
     const user = await DataBase.models.User.findOne({ where: filter })
 
-    for (const field in update) {
-      const value = update[field]
+    return { user: new User(user) }
+  }
 
-      if (!value) continue
+  public static async findAllUsers() {
+    const users = await DataBase.models.User.findAll()
+
+    return { users }
+  }
+
+  public static async editUser(update: UpdateUserOptions, filter: object) {
+    const user = await DataBase.models.User.findOne({ where: filter })
+
+    Object.entries(update).map(async ([field, value]) => {
+      if (!value) return
 
       if (field === 'password') {
         const password: string = value
@@ -64,7 +58,7 @@ class UserService {
         const hashPassword = await bcrypt.hash(password, 3)
         user.password = hashPassword
 
-        continue
+        return
       }
       if (field === 'avatar') {
         const base64String: string = value
@@ -77,7 +71,7 @@ class UserService {
             path: `avatars/avatar_${user.id}`,
             body,
             contentEncoding: 'base64',
-            contentType: `image/${contentType}`,
+            contentType: `image/${contentType}`
           }
 
           const storage = new Storage()
@@ -86,21 +80,21 @@ class UserService {
           user.avatar = data.Location
         }
 
-        continue
+        return
       }
 
       if (value !== user[field]) {
         user[field] = value
       }
-    }
+    })
 
     user.save()
 
-    return new UserDTO(user)
+    return { user: new User(user) }
   }
 
-  public static async delete(options: DeleteUserOptions) {
-    await AuthTokenService.delete({ user_id: options.id })
+  public static async deleteUser(options: DeleteUserOptions) {
+    await AuthTokenService.deleteToken({ user_id: options.id })
 
     await DataBase.models.User.destroy({ where: { id: options.id } })
   }

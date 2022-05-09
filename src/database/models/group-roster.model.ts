@@ -13,7 +13,6 @@ import {
 import Group from './group.model'
 import User from './user.model'
 import { Op } from 'sequelize'
-import Dialog from './dialog.model'
 
 @Scopes(() => ({
   group: {

@@ -3,17 +3,16 @@ import {
   Table,
   Column,
   ForeignKey,
-  DataType,
   Default,
   BelongsTo,
   DefaultScope,
-  Scopes
+  Scopes,
+  DataType
 } from 'sequelize-typescript'
+import { Op } from 'sequelize'
 
 import Dialog from './dialog.model'
 import User from './user.model'
-import Group from './group.model'
-import { Op } from 'sequelize'
 
 @Scopes(() => ({
   dialog: {
@@ -29,7 +28,7 @@ import { Op } from 'sequelize'
       include: [
         {
           model: User,
-          attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'],
+          attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt'],
           where: {
             username: { [Op.like]: `%${value}%` }
           }
@@ -40,7 +39,7 @@ import { Op } from 'sequelize'
         }
       ]
     }
-  }
+  },
 }))
 @DefaultScope(() => ({
   include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'] }]

@@ -2,17 +2,21 @@ const uuid = require('uuid')
 import { Op } from 'sequelize'
 
 import DataBase from '../../database'
-import { EditFolderDTO, CreateFolderDTO, GetFoldersDTO, DeleteFolderDTO } from '../../dtos/socket/folder-roster.dto'
-import { FolderDTO } from '../../dtos/common/folder.dto'
+import {
+  CreateFolderOptions,
+  CreateFolderResponse,
+  EditFolderOptions,
+  EditFolderResponse,
+  GetFoldersOptions,
+  GetFoldersResponse,
+  DeleteFolderOptions,
+  DeleteFolderResponse
+} from './types'
+import Folder from '../../helpers/folder'
 import ErrorAPI from '../../exceptions/ErrorAPI'
 
-interface CreateFolderOptions extends CreateFolderDTO {}
-interface EditFolderOptions extends EditFolderDTO {}
-interface GetFoldersOptions extends GetFoldersDTO {}
-interface DeleteFolderOptions extends DeleteFolderDTO {}
-
 class FolderService {
-  public static async create(options: CreateFolderOptions) {
+  public static async createFolder(options: CreateFolderOptions): Promise<CreateFolderResponse> {
     const { userID, name, dialogs, groups } = options
 
     const checkFolder = await DataBase.models.Folder.findOne({ where: { user_id: userID, name } })
@@ -31,12 +35,12 @@ class FolderService {
     }
 
     const createdFolder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folder.id } })
-    const transformedFolder = new FolderDTO(createdFolder)
+    const transformedFolder = new Folder(createdFolder)
 
     return { folder: transformedFolder }
   }
 
-  public static async edit(options: EditFolderOptions) {
+  public static async editFolder(options: EditFolderOptions): Promise<EditFolderResponse> {
     const { folderID, folderName, roster } = options
 
     const folder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
@@ -67,21 +71,21 @@ class FolderService {
     folder.save()
 
     const editedFolder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
-    const transformedFolder = new FolderDTO(editedFolder)
+    const transformedFolder = new Folder(editedFolder)
 
     return { folder: transformedFolder }
   }
 
-  public static async get(options: GetFoldersOptions) {
+  public static async getFolders(options: GetFoldersOptions): Promise<GetFoldersResponse> {
     const { userID } = options
 
     const folders = await DataBase.models.Folder.scope(['roster']).findAll({ where: { user_id: userID } })
-    const transformedFolders = folders.map((folder: any) => new FolderDTO(folder))
+    const transformedFolders = folders.map((folder: any) => new Folder(folder))
 
     return { folders: transformedFolders }
   }
 
-  public static async delete(options: DeleteFolderOptions) {
+  public static async deleteFolder(options: DeleteFolderOptions): Promise<DeleteFolderResponse> {
     const { folderID, folderName } = options
 
     await DataBase.models.FolderDialogRoster.destroy({ where: { folder_id: folderID } })

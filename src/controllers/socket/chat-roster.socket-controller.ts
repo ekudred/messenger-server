@@ -8,7 +8,7 @@ import {
   SocketIO
 } from 'socket-controllers'
 
-import ChatService from '../../services/external/chat.service'
+import ChatService from '../../services/chat'
 import {
   GetChatsDTO,
   GetDialogsDTO,
@@ -20,7 +20,9 @@ import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
 import { authSocketMiddleware } from '../../middlewares/socket/auth.socket-middleware'
 import { authRolesArray } from '../../utils/constants'
 
-@SocketController('/chat_roster')
+const namespace = '/chat_roster'
+
+@SocketController(namespace)
 class ChatRosterController {
   @OnConnect()
   connection(@ConnectedSocket() socket: any) {
@@ -31,11 +33,11 @@ class ChatRosterController {
   }
 
   @OnMessage('chats:get')
-  async getChats(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: GetChatsDTO) {
+  async getChats(@ConnectedSocket() connectedSocket: any, @MessageBody() message: GetChatsDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chats:got_list', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'chats:got', arg: message => ({ error: { message } }) }] }
       })
     ])
 
@@ -45,10 +47,10 @@ class ChatRosterController {
 
       // dialogs.forEach((dialog: any) => socket.join(dialog.id))
 
-      socket.emit('chats:got_list', data)
+      socket.emit('chats:got', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('chats:got_list', { error: { message: error.message } })
+      socket.emit('chats:got', { error: { message: error.message } })
     }
   }
 
@@ -57,17 +59,17 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chats:searched_list', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'chats:searched', arg: message => ({ error: { message } }) }] }
       })
     ])
 
     try {
       const data = await ChatService.searchChats(message)
 
-      socket.emit('chats:searched_list', data)
+      socket.emit('chats:searched', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('chats:searched_list', { error: { message: error.message } })
+      socket.emit('chats:searched', { error: { message: error.message } })
     }
   }
 
@@ -76,17 +78,17 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'dialogs:got_list', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'dialogs:got', arg: message => ({ error: { message } }) }] }
       })
     ])
 
     try {
       const data = await ChatService.getDialogs(message)
 
-      socket.emit('dialogs:got_list', data)
+      socket.emit('dialogs:got', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('dialogs:got_list', { error: { message: error.message } })
+      socket.emit('dialogs:got', { error: { message: error.message } })
     }
   }
 
@@ -95,19 +97,18 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'dialog:created_item', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'dialog:created', arg: message => ({ error: { message } }) }] }
       })
     ])
 
     try {
       const data = await ChatService.createDialog(message)
 
-      socket.emit('dialog:created_item', data)
-      // io.sockets.to(socket.handshake.auth.user.id).emit('dialog:created_item', data)
-      // io.sockets.to(message.companionID).emit('created_dialog', data)
+      io.of(namespace).to(`user_room=${message.userID}`).emit('dialog:created', data)
+      io.of(namespace).to(`user_room=${message.companionID}`).emit('dialog:created', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('dialog:created_item', { error: { message: error.message } })
+      socket.emit('dialog:created', { error: { message: error.message } })
     }
   }
 
@@ -116,21 +117,18 @@ class ChatRosterController {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'group:created_item', arg: message => ({ error: { message } }) }] }
+        emitAtError: { emits: [{ event: 'group:created', arg: message => ({ error: { message } }) }] }
       })
     ])
 
     try {
       const data = await ChatService.createGroup(message)
 
-      socket.emit('group:created_item', data)
-      // io.sockets.to(socket.handshake.auth.user.id).emit('group:created_item', data)
-      // message.roster.forEach(item => {
-      //   io.sockets.to(item.userID).emit('created_group', data)
-      // })
+      io.of(namespace).to(`user_room=${message.creatorID}`).emit('group:created', data)
+      message.roster.forEach(user => io.of(namespace).to(`user_room=${user.userID}`).emit('group:created', data))
     } catch (error: any) {
       console.error(error)
-      socket.emit('group:created_item', { error: { message: error.message } })
+      socket.emit('group:created', { error: { message: error.message } })
     }
   }
 }
