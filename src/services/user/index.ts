@@ -31,8 +31,8 @@ class UserService {
     return { user }
   }
 
-  public static async findUser(filter: object) {
-    const user = await DataBase.models.User.findOne({ where: filter })
+  public static async findUser(where: object) {
+    const user = await DataBase.models.User.findOne({ where })
 
     return { user: new User(user) }
   }
@@ -43,8 +43,8 @@ class UserService {
     return { users }
   }
 
-  public static async editUser(update: UpdateUserOptions, filter: object) {
-    const user = await DataBase.models.User.findOne({ where: filter })
+  public static async editUser(update: UpdateUserOptions, where: object) {
+    const user = await DataBase.models.User.findOne({ where })
 
     Object.entries(update).map(async ([field, value]) => {
       if (!value) return

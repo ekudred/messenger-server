@@ -1,10 +1,10 @@
-import { Dialog, Group } from '../chat/types'
+import { DialogChat, GroupChat } from '../chat/types'
 
 export interface Folder {
   id: string
   name: string
   userID: string
-  roster: (Dialog | Group)[]
+  roster: (DialogChat | GroupChat)[]
   createdAt: string
   updatedAt: string
 }

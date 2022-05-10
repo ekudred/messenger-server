@@ -6,6 +6,7 @@ import GroupMessage from './group-message.model'
 import FolderGroupRoster from './folder-group-roster.model'
 
 import { defaultAvatarImage } from '../../utils/constants'
+import { userSafeAttributes } from '../constants'
 
 @Scopes(() => ({
   roster: {
@@ -15,10 +16,7 @@ import { defaultAvatarImage } from '../../utils/constants'
     include: [{ model: GroupMessage }]
   },
   creator: {
-    include: [{
-      model: User,
-      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']
-    }]
+    include: [{ model: User, attributes: userSafeAttributes }]
   }
 }))
 @Table({ tableName: 'groups' })

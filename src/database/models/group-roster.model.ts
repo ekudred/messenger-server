@@ -9,14 +9,15 @@ import {
   DefaultScope,
   Scopes
 } from 'sequelize-typescript'
+import { Op } from 'sequelize'
 
 import Group from './group.model'
 import User from './user.model'
-import { Op } from 'sequelize'
+import { userSafeAttributes } from '../constants'
 
 @Scopes(() => ({
   group: {
-    include: [{ model: Group, include: ['roster'] }] // 'roster', 'messages', 'creator'
+    include: [{ model: Group, include: ['roster', 'messages', 'creator'] }] // 'roster', 'messages', 'creator'
   },
   getGroup: value => {
     return {
@@ -38,7 +39,7 @@ import { Op } from 'sequelize'
   }
 }))
 @DefaultScope(() => ({
-  include: [{ model: User, attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated'] }]
+  include: [{ model: User, attributes: userSafeAttributes }]
 }))
 @Table({ tableName: 'group_roster' })
 class GroupRoster extends Model<GroupRoster> {

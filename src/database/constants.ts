@@ -1,0 +1,1 @@
+export const userSafeAttributes = ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']

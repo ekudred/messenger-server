@@ -1,21 +1,7 @@
 import { Message } from '../message/types'
 import { User } from '../user/types'
 
-export type ChatType = 'dialog' | 'group' | 'user'
-
-export interface Dialog {
-  id: string
-  companion: User
-  roster: User[]
-  messages: Message[]
-  createdAt: string
-  updatedAt: string
-}
-
-export interface DialogChat {
-  type: 'dialog',
-  chat: Dialog
-}
+export type ChatType = 'user' | 'group'
 
 export interface Group {
   id: string
@@ -33,9 +19,18 @@ export interface GroupChat {
   chat: Group
 }
 
-export interface UserChat {
+export interface Dialog {
+  id: string
+  comrade: User
+  roster: User[]
+  messages: Message[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DialogChat {
   type: 'user',
-  chat: User
+  chat: Dialog
 }
 
 // GetChat
@@ -46,7 +41,7 @@ export interface GetChatOptions {
   userID: string
 }
 
-export type GetChatResponse = DialogChat | GroupChat | UserChat
+export type GetChatResponse =  DialogChat | GroupChat
 
 // GetChats
 
@@ -76,14 +71,15 @@ export interface SearchChatsOptions {
 }
 
 export interface SearchChatsResponse {
-  chats: (DialogChat | GroupChat | UserChat)[]
+  chats: (DialogChat | GroupChat)[]
+  users: User[]
 }
 
 // CreateDialog
 
 export interface CreateDialogOptions {
   userID: string
-  companionID: string
+  comradeID: string
 }
 
 export interface CreateDialogResponse {
@@ -101,4 +97,13 @@ export interface CreateGroupOptions {
 
 export interface CreateGroupResponse {
   group: Group
+}
+
+//  HandleUserDialogActive
+
+export interface HandleUserDialogActiveOptions {
+  dialogID: string
+}
+export interface HandleUserDialogActiveResponse {
+  created: boolean
 }

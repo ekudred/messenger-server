@@ -1,6 +1,7 @@
 import { Group } from '../services/chat/types'
 import TransformedUser from './user'
 import TransformedMessage from './message'
+import GroupModel from '../database/models/group.model'
 
 class TransformedGroup implements Group {
   public id: string
@@ -12,15 +13,18 @@ class TransformedGroup implements Group {
   public createdAt: string
   public updatedAt: string
 
-  constructor(object: { [key: string]: any }) {
-    this.id = object.id
-    this.name = object.name
-    this.avatar = object.avatar
-    this.creator = new TransformedUser(object.creator)
-    this.roster = object.roster.map((item: any) => new TransformedUser(item.user))
-    this.messages = object.messages ? object.messages.map((item: any) => new TransformedMessage('dialog', item)) : []
-    this.createdAt = object.createdAt
-    this.updatedAt = object.updatedAt
+  constructor(model: GroupModel) {
+    const messages = model.messages ?? []
+    const roster = model.roster ?? []
+
+    this.id = model.id
+    this.name = model.name
+    this.avatar = model.avatar
+    this.creator = new TransformedUser(model.creator)
+    this.roster = roster.map(groupRoster => new TransformedUser(groupRoster.user))
+    this.messages = messages.map(groupMessage => new TransformedMessage({ chatType: 'group', chatID: model.id, model: groupMessage }))
+    this.createdAt = model.createdAt
+    this.updatedAt = model.updatedAt
   }
 }
 

@@ -15,6 +15,7 @@ import { Op } from 'sequelize'
 
 import AuthToken from './auth-token.model'
 import Folder from './folder.model'
+import UserDialog from './user-dialog.model'
 import DialogRoster from './dialog-roster.model'
 import DialogMessage from './dialog-message.model'
 import Group from './group.model'
@@ -30,17 +31,18 @@ import {
   rolesArray,
   defaultAvatarImage
 } from '../../utils/constants'
+import { userSafeAttributes } from '../constants'
 
 @Scopes(() => ({
   safeAttributes: {
-    attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']
+    attributes: userSafeAttributes
   },
   search: value => {
     return {
       where: {
         username: { [Op.like]: `%${value}%` }
       },
-      attributes: ['id', 'username', 'fullname', 'birthdate', 'avatar', 'role', 'is_activated', 'updatedAt', 'createdAt']
+      attributes: userSafeAttributes
     }
   }
 }))
@@ -90,7 +92,7 @@ class User extends Model<User> {
   declare activation_link: string
 
   @Default(false)
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.BOOLEAN })
   declare is_activated: boolean
 
   // Associations
@@ -100,6 +102,9 @@ class User extends Model<User> {
 
   @HasMany(() => Folder)
   declare folders: Folder[]
+
+  @HasMany(() => UserDialog)
+  declare user_dialogs: UserDialog[]
 
   @HasMany(() => DialogRoster)
   declare dialog_roster: DialogRoster[]

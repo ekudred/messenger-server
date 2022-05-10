@@ -18,16 +18,16 @@ class AuthTokenService extends TokenService {
     return token
   }
 
-  public static async findToken(filter: object) {
-    return await DataBase.models.AuthToken.findOne({ where: filter })
+  public static async findToken(where: object) {
+    return await DataBase.models.AuthToken.findOne({ where })
   }
 
-  public static async updateToken(update: object, filter: object) {
-    await DataBase.models.AuthToken.update(update, { where: filter })
+  public static async updateToken(update: object, where: object) {
+    await DataBase.models.AuthToken.update(update, { where })
   }
 
-  public static async deleteToken(filter: object) {
-    return await DataBase.models.AuthToken.destroy({ where: filter })
+  public static async deleteToken(where: object) {
+    return await DataBase.models.AuthToken.destroy({ where })
   }
 }
 

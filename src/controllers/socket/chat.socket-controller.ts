@@ -10,10 +10,10 @@ import {
 
 import ChatService from '../../services/chat'
 import MessageService from '../../services/message'
-import { JoinChatDTO, LeaveChatDTO, SendMessageDTO } from '../../dtos/socket/chat.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
 import { authSocketMiddleware } from '../../middlewares/socket/auth.socket-middleware'
 import { authRolesArray } from '../../utils/constants'
+import { JoinChatDTO, LeaveChatDTO, SendMessageDTO } from '../../dtos/socket/chat.dto'
 
 const namespace = '/chat'
 
@@ -76,6 +76,14 @@ class ChatController {
     // приходит еще date в message !!!!!!!
     try {
       const data = await MessageService.sendMessage(message)
+
+      if (data.message.chatType === 'user') {
+        const { created } = await ChatService.handleUserDialogActive({ dialogID: data.message.chatID })
+
+        // if (created) {
+        //
+        // }
+      }
 
       io.of(namespace).to(`chat_room=${data.message.chatID}`).emit('message:sent', data)
     } catch (error: any) {

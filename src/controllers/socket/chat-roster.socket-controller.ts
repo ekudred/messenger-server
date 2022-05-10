@@ -13,7 +13,6 @@ import {
   GetChatsDTO,
   GetDialogsDTO,
   SearchChatsDTO,
-  CreateDialogDTO,
   CreateGroupDTO
 } from '../../dtos/socket/chat-roster.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
@@ -89,26 +88,6 @@ class ChatRosterController {
     } catch (error: any) {
       console.error(error)
       socket.emit('dialogs:got', { error: { message: error.message } })
-    }
-  }
-
-  @OnMessage('dialog:create')
-  async createDialog(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: CreateDialogDTO) {
-    const socket = useSocketMiddleware(connectedSocket, [
-      authSocketMiddleware({
-        permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'dialog:created', arg: message => ({ error: { message } }) }] }
-      })
-    ])
-
-    try {
-      const data = await ChatService.createDialog(message)
-
-      io.of(namespace).to(`user_room=${message.userID}`).emit('dialog:created', data)
-      io.of(namespace).to(`user_room=${message.companionID}`).emit('dialog:created', data)
-    } catch (error: any) {
-      console.error(error)
-      socket.emit('dialog:created', { error: { message: error.message } })
     }
   }
 

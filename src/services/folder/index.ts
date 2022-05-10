@@ -25,12 +25,20 @@ class FolderService {
     const folder = await DataBase.models.Folder.create({ id: uuid.v4(), user_id: userID, name })
 
     if (dialogs.length !== 0) {
-      const dialogsBulkOptions = dialogs.map((dialog: any) => ({ id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id }))
+      const dialogsBulkOptions = dialogs.map((dialog: any) => ({
+        id: uuid.v4(),
+        folder_id: folder.id,
+        dialog_id: dialog.id
+      }))
       await DataBase.models.FolderDialogRoster.bulkCreate(dialogsBulkOptions)
     }
 
     if (groups.length !== 0) {
-      const groupsBulkOptions = groups.map((group: any) => ({ id: uuid.v4(), folder_id: folder.id, group_id: group.id }))
+      const groupsBulkOptions = groups.map((group: any) => ({
+        id: uuid.v4(),
+        folder_id: folder.id,
+        group_id: group.id
+      }))
       await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
     }
 
@@ -46,29 +54,31 @@ class FolderService {
     const folder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
 
     if (folder.name !== folderName) {
-      folder.name = folderName
+      await DataBase.models.Folder.update({ name: folderName }, { where: { id: folderID } })
     }
 
     if (roster.deleted.dialogs.length !== 0) {
       await DataBase.models.FolderDialogRoster.destroy({
-        where: { dialog_id: { [Op.or]: roster.deleted.dialogs.map((item: any) => item.id) }, folder_id: folder.id },
+        where: { dialog_id: { [Op.or]: roster.deleted.dialogs.map((item: any) => item.id) }, folder_id: folder.id }
       })
     }
     if (roster.deleted.groups.length !== 0) {
       await DataBase.models.FolderGroupRoster.destroy({
-        where: { group_id: { [Op.or]: roster.deleted.groups.map((item: any) => item.id) }, folder_id: folder.id },
+        where: { group_id: { [Op.or]: roster.deleted.groups.map((item: any) => item.id) }, folder_id: folder.id }
       })
     }
     if (roster.added.dialogs.length !== 0) {
-      const dialogsBulkOptions = roster.added.dialogs.map((dialog: any) => ({ id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id }))
+      const dialogsBulkOptions = roster.added.dialogs.map((dialog: any) => ({
+        id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id
+      }))
       await DataBase.models.FolderDialogRoster.bulkCreate(dialogsBulkOptions)
     }
     if (roster.added.groups.length !== 0) {
-      const groupsBulkOptions = roster.added.groups.map((group: any) => ({ id: uuid.v4(), folder_id: folder.id, group_id: group.id }))
+      const groupsBulkOptions = roster.added.groups.map((group: any) => ({
+        id: uuid.v4(), folder_id: folder.id, group_id: group.id
+      }))
       await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
     }
-
-    folder.save()
 
     const editedFolder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
     const transformedFolder = new Folder(editedFolder)
