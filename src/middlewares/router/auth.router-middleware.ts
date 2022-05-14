@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 
 import ErrorAPI from '../../exceptions/ErrorAPI'
-import Index from '../../services/token'
+import TokenService from '../../services/token'
 
 export function authRouterMiddleware(permittedRoles: string[]) {
   return (request: Request, response: Response, next: NextFunction) => {
@@ -16,7 +16,7 @@ export function authRouterMiddleware(permittedRoles: string[]) {
       const accessToken = authHeader.split(' ')[1]
       if (!accessToken) return next(ErrorAPI.unAuthError())
 
-      const user: any = Index.verifyAccessToken(accessToken)
+      const user: any = TokenService.verifyAccessToken(accessToken)
       if (!user) return next(ErrorAPI.unAuthError())
 
       if (!permittedRoles.includes(user.role)) next(ErrorAPI.forbidden())

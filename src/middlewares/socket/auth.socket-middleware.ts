@@ -2,7 +2,7 @@ import { Socket } from 'socket.io'
 
 import ErrorAPI from '../../exceptions/ErrorAPI'
 import { emitError, EmitErrorOptions } from '../../utils/custom-socket-middleware'
-import Index from '../../services/token'
+import TokenService from '../../services/token'
 
 interface AuthSocketMiddlewareOptions {
   permittedRoles: string[]
@@ -16,7 +16,7 @@ export function authSocketMiddleware(options: AuthSocketMiddlewareOptions) {
     const accessToken = socket.handshake.auth.accessToken
     if (!accessToken) throw emitError(socket, ErrorAPI.unAuthError(), emitAtErrorOptions)
 
-    const user: any = Index.verifyAccessToken(accessToken)
+    const user: any = TokenService.verifyAccessToken(accessToken)
     if (!user) throw emitError(socket, ErrorAPI.unAuthError(), emitAtErrorOptions)
 
     if (!permittedRoles.includes(user.role)) throw emitError(socket, ErrorAPI.forbidden(), emitAtErrorOptions)
