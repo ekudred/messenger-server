@@ -9,11 +9,12 @@ export enum Roles {
 
 export const rolesArray = [Roles.USER, Roles.ADMIN]
 export const authRolesArray = [Roles.USER, Roles.ADMIN]
-export const defaultAvatarImage = 'https://messenger-pet-project.s3.eu-central-1.amazonaws.com/avatars/avatar_default.png'
+export const defaultUserAvatarImage = 'https://messenger-pet-project.s3.eu-central-1.amazonaws.com/default_avatars/user.png'
+export const defaultGroupChatAvatarImage = 'https://messenger-pet-project.s3.eu-central-1.amazonaws.com/default_avatars/group_chat.png'
 
 export const cookieOptionsToken: CookieOptions = { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none', secure: true }
 
-// RegExp's
+// RegExps
 
 export const RegExpPassword = /^.{8,32}$/
 export const RegExpUserName = /^[a-zA-Z][a-zA-Z0-9-_\.]{3,15}$/

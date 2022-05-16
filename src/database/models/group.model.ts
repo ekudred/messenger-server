@@ -5,7 +5,7 @@ import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
 import FolderGroupRoster from './folder-group-roster.model'
 
-import { defaultAvatarImage } from '../../utils/constants'
+import { defaultGroupChatAvatarImage } from '../../utils/constants'
 import { userSafeAttributes } from '../constants'
 
 @Scopes(() => ({
@@ -32,7 +32,7 @@ class Group extends Model<Group> {
   @Column({ type: DataType.STRING })
   declare name: string
 
-  @Default(defaultAvatarImage)
+  @Default(defaultGroupChatAvatarImage)
   @Column({ type: DataType.STRING })
   declare avatar: string
 

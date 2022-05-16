@@ -29,7 +29,7 @@ import {
   RegExpPhoneNumber,
   Roles,
   rolesArray,
-  defaultAvatarImage
+  defaultUserAvatarImage
 } from '../../utils/constants'
 import { userSafeAttributes } from '../constants'
 
@@ -80,7 +80,7 @@ class User extends Model<User> {
   @Column({ type: DataType.STRING })
   declare phone: string
 
-  @Default(defaultAvatarImage)
+  @Default(defaultUserAvatarImage)
   @Column({ type: DataType.STRING })
   declare avatar: string
 

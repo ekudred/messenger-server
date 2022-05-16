@@ -21,11 +21,7 @@ class UserService {
     const id = uuid.v4()
 
     const user = await DataBase.models.User.create({
-      id,
-      password: hashPassword,
-      email,
-      username,
-      activation_link: activationLink
+      id, password: hashPassword, email, username, activation_link: activationLink
     })
 
     return { user }
@@ -68,7 +64,7 @@ class UserService {
           const contentType = base64String.split(';')[0].split('/')[1]
 
           const options = {
-            path: `avatars/avatar_${user.id}`,
+            path: `user_avatars/user_avatar_${user.id}`,
             body,
             contentEncoding: 'base64',
             contentType: `image/${contentType}`
