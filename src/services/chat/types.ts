@@ -10,22 +10,23 @@ export interface Group {
   creator: User
   roster: User[]
   messages: Message[]
-  createdAt: string
-  updatedAt: string
+  updatedMessagesAt: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Dialog {
+  id: string
+  roster: User[]
+  messages: Message[]
+  updatedMessagesAt: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface GroupChat {
   type: 'group',
   chat: Group
-}
-
-export interface Dialog {
-  id: string
-  comrade: User
-  roster: User[]
-  messages: Message[]
-  createdAt: string
-  updatedAt: string
 }
 
 export interface DialogChat {
@@ -41,7 +42,10 @@ export interface GetChatOptions {
   userID: string
 }
 
-export type GetChatResponse =  DialogChat | GroupChat
+export interface GetChatResponse {
+  userID: string
+  chat: DialogChat | GroupChat
+}
 
 // GetChats
 
@@ -50,6 +54,7 @@ export interface GetChatsOptions {
 }
 
 export interface GetChatsResponse {
+  userID: string
   chats: (DialogChat | GroupChat)[]
 }
 
@@ -60,6 +65,7 @@ export interface GetDialogsOptions {
 }
 
 export interface GetDialogsResponse {
+  userID: string
   dialogs: Dialog[]
 }
 
@@ -71,6 +77,7 @@ export interface SearchChatsOptions {
 }
 
 export interface SearchChatsResponse {
+  userID: string
   chats: (DialogChat | GroupChat)[]
   users: User[]
 }
@@ -83,6 +90,7 @@ export interface CreateDialogOptions {
 }
 
 export interface CreateDialogResponse {
+  userID: string
   dialog: Dialog
 }
 
@@ -96,14 +104,13 @@ export interface CreateGroupOptions {
 }
 
 export interface CreateGroupResponse {
+  userID: string
   group: Group
 }
 
 //  HandleUserDialogActive
 
-export interface HandleUserDialogActiveOptions {
+export interface HandleUserDialogOptions {
   dialogID: string
 }
-export interface HandleUserDialogActiveResponse {
-  created: boolean
-}
+export type HandleUserDialogResponse = void

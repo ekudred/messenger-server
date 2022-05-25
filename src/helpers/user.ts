@@ -9,8 +9,8 @@ class TransformedUser implements User {
   public avatar: string
   public role: string
   public isActivated: boolean
-  public createdAt: string
-  public updatedAt: string
+  public createdAt: Date
+  public updatedAt: Date
 
   constructor(model: UserModel) {
     this.id = model.id
@@ -20,8 +20,8 @@ class TransformedUser implements User {
     this.avatar = model.avatar
     this.role = model.role
     this.isActivated = model.is_activated
-    this.createdAt = model.createdAt
-    this.updatedAt = model.updatedAt
+    this.createdAt = model.created_at
+    this.updatedAt = model.updated_at
   }
 
   public toPlainObj(): Object {

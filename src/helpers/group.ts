@@ -10,21 +10,22 @@ class TransformedGroup implements Group {
   public creator: TransformedUser
   public roster: TransformedUser[]
   public messages: TransformedMessage[]
-  public createdAt: string
-  public updatedAt: string
+  public updatedMessagesAt: Date
+  public createdAt: Date
+  public updatedAt: Date
 
   constructor(model: GroupModel) {
-    const messages = model.messages ?? []
-    const roster = model.roster ?? []
-
     this.id = model.id
     this.name = model.name
     this.avatar = model.avatar
     this.creator = new TransformedUser(model.creator)
-    this.roster = roster.map(groupRoster => new TransformedUser(groupRoster.user))
-    this.messages = messages.map(groupMessage => new TransformedMessage({ chatType: 'group', chatID: model.id, model: groupMessage }))
-    this.createdAt = model.createdAt
-    this.updatedAt = model.updatedAt
+    this.roster = model.roster.map(item => new TransformedUser(item.user))
+    this.messages = model.messages.map(message => new TransformedMessage({
+      chatType: 'group', chatID: model.id, model: message
+    }))
+    this.updatedMessagesAt = model.updated_messages_at
+    this.createdAt = model.created_at
+    this.updatedAt = model.updated_at
   }
 }
 

@@ -5,48 +5,37 @@ import {
   ForeignKey,
   Default,
   BelongsTo,
-  DefaultScope,
   Scopes,
+  DefaultScope,
+  UpdatedAt,
+  CreatedAt,
   DataType
 } from 'sequelize-typescript'
-import { Op } from 'sequelize'
+import { Optional } from 'sequelize'
 
 import Dialog from './dialog.model'
 import User from './user.model'
 import { userSafeAttributes } from '../constants'
 
-@Scopes(() => ({
-  dialog: {
-    include: [{ model: Dialog, include: ['roster', 'messages'] }] // 'roster', 'messages'
-  },
-  getDialog: value => {
-    return {
-      include: [{ model: Dialog, include: value }]
-    }
-  },
-  searchByUsername: value => {
-    return {
-      include: [
-        {
-          model: User,
-          attributes: userSafeAttributes,
-          where: {
-            username: { [Op.like]: `%${value}%` }
-          }
-        },
-        {
-          model: Dialog,
-          include: ['roster']
-        }
-      ]
-    }
-  }
-}))
+export interface DialogRosterAttributes {
+  id: string
+  dialog_id: string
+  user_id: string
+  updated_at: Date
+  created_at: Date
+}
+
+export type DialogRosterCreationAttributes = Optional<DialogRosterAttributes, 'id' | 'updated_at' | 'created_at'>
+
 @DefaultScope(() => ({
   include: [{ model: User, attributes: userSafeAttributes }]
 }))
+@Scopes(() => ({
+  dialog: { include: [{ model: Dialog, include: ['roster', 'messages'] }] },
+  user: { include: [{ model: User, attributes: userSafeAttributes }] }
+}))
 @Table({ tableName: 'dialog_roster' })
-class DialogRoster extends Model<DialogRoster> {
+class DialogRoster extends Model<DialogRosterAttributes, DialogRosterCreationAttributes> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
@@ -58,6 +47,12 @@ class DialogRoster extends Model<DialogRoster> {
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare user_id: string
+
+  @UpdatedAt
+  declare updated_at: Date
+
+  @CreatedAt
+  declare created_at: Date
 
   // Associations
 

@@ -9,9 +9,9 @@ import {
   AllowNull,
   DataType,
   HasMany,
-  Scopes
+  Scopes, UpdatedAt, CreatedAt
 } from 'sequelize-typescript'
-import { Op } from 'sequelize'
+import { Op, Optional } from 'sequelize'
 
 import AuthToken from './auth-token.model'
 import Folder from './folder.model'
@@ -33,21 +33,39 @@ import {
 } from '../../utils/constants'
 import { userSafeAttributes } from '../constants'
 
+export interface UserAttributes {
+  id: string
+  password: string
+  email: string
+  username: string
+  fullname: string
+  birthdate: string
+  phone: string
+  avatar: string
+  role: string
+  activation_link: string
+  is_activated: string
+  updated_at: Date
+  created_at: Date
+}
+
+export type UserCreationAttributes = Optional<UserAttributes, 'id' | 'updated_at' | 'created_at'>
+
 @Scopes(() => ({
-  safeAttributes: {
-    attributes: userSafeAttributes
-  },
-  search: value => {
+  searchByUsername: value => {
     return {
       where: {
         username: { [Op.like]: `%${value}%` }
       },
       attributes: userSafeAttributes
     }
+  },
+  safeAttributes: {
+    attributes: userSafeAttributes
   }
 }))
 @Table({ tableName: 'users' })
-class User extends Model<User> {
+class User extends Model<UserAttributes, UserCreationAttributes> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
@@ -94,6 +112,12 @@ class User extends Model<User> {
   @Default(false)
   @Column({ type: DataType.BOOLEAN })
   declare is_activated: boolean
+
+  @UpdatedAt
+  declare updated_at: Date
+
+  @CreatedAt
+  declare created_at: Date
 
   // Associations
 

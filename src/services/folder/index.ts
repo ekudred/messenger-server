@@ -1,4 +1,5 @@
 const uuid = require('uuid')
+
 import { Op } from 'sequelize'
 
 import DataBase from '../../database'
@@ -9,10 +10,15 @@ import {
   EditFolderResponse,
   GetFoldersOptions,
   GetFoldersResponse,
+  SearchFolderChatsOptions,
+  SearchFolderChatsResponse,
   DeleteFolderOptions,
   DeleteFolderResponse
 } from './types'
+import { DialogChat, GroupChat } from '../chat/types'
 import Folder from '../../helpers/folder'
+import Dialog from '../../helpers/dialog'
+import Group from '../../helpers/group'
 import ErrorAPI from '../../exceptions/ErrorAPI'
 
 class FolderService {
@@ -26,18 +32,14 @@ class FolderService {
 
     if (dialogs.length !== 0) {
       const dialogsBulkOptions = dialogs.map((dialog: any) => ({
-        id: uuid.v4(),
-        folder_id: folder.id,
-        dialog_id: dialog.id
+        id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id
       }))
       await DataBase.models.FolderDialogRoster.bulkCreate(dialogsBulkOptions)
     }
 
     if (groups.length !== 0) {
       const groupsBulkOptions = groups.map((group: any) => ({
-        id: uuid.v4(),
-        folder_id: folder.id,
-        group_id: group.id
+        id: uuid.v4(), folder_id: folder.id, group_id: group.id
       }))
       await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
     }
@@ -54,7 +56,8 @@ class FolderService {
     const folder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
 
     if (folder.name !== folderName) {
-      await DataBase.models.Folder.update({ name: folderName }, { where: { id: folderID } })
+      folder.name = folderName
+      // await DataBase.models.Folder.update({ name: folderName }, { where: { id: folderID } })
     }
 
     if (roster.deleted.dialogs.length !== 0) {
@@ -80,6 +83,9 @@ class FolderService {
       await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
     }
 
+    // await folder.reload()
+    await folder.save()
+
     const editedFolder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
     const transformedFolder = new Folder(editedFolder)
 
@@ -93,6 +99,33 @@ class FolderService {
     const transformedFolders = folders.map((folder: any) => new Folder(folder))
 
     return { folders: transformedFolders }
+  }
+
+  public static async searchFolderChats(options: SearchFolderChatsOptions): Promise<SearchFolderChatsResponse> {
+    const { folderID, userID, value } = options
+
+    const folderDialogs = await DataBase.models.FolderDialogRoster
+      .findAll({ where: { folder_id: folderID } })
+    const dialogs: DialogChat[] = folderDialogs.map((folderDialog: any) => ({
+      type: 'user', chat: new Dialog(folderDialog.dialog)
+    }))
+    const transformedDialogs = dialogs.map(dialog => {
+      const { type, chat } = dialog
+      const comrade = dialog.chat.roster.find(user => user.id !== userID)!
+      return { type, chat: { ...chat, comrade } }
+    })
+    const filteredDialogs = transformedDialogs.filter(dialog => dialog.chat.comrade.username.match(value))
+
+    const folderGroups = await DataBase.models.FolderGroupRoster
+      .scope([{ method: ['searchLikeName', value] }])
+      .findAll({ where: { folder_id: folderID } })
+    const groups: GroupChat[] = folderGroups.map((folderGroup: any) => ({
+      type: 'group', chat: new Group(folderGroup.group)
+    }))
+
+    const chats = [...filteredDialogs, ...groups]
+
+    return { userID, folderID, chats }
   }
 
   public static async deleteFolder(options: DeleteFolderOptions): Promise<DeleteFolderResponse> {

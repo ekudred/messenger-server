@@ -6,8 +6,8 @@ export interface User {
   avatar: string
   role: string
   isActivated: boolean
-  createdAt: string
-  updatedAt: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 // CreateUser

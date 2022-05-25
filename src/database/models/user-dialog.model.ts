@@ -5,27 +5,33 @@ import {
   ForeignKey,
   Default,
   BelongsTo,
-  // DefaultScope,
   Scopes,
-  DataType
+  DataType,
+  UpdatedAt,
+  CreatedAt
 } from 'sequelize-typescript'
-// import { Op } from 'sequelize'
+import { Optional } from 'sequelize'
 
 import Dialog from './dialog.model'
 import User from './user.model'
 
+export interface UserDialogAttributes {
+  id: string
+  user_id: string
+  comrade_id: string
+  dialog_id: string
+  active: boolean
+  updated_at: Date
+  created_at: Date
+}
+
+export type UserDialogCreationAttributes = Optional<UserDialogAttributes, 'id' | 'updated_at' | 'created_at'>
+
 @Scopes(() => ({
-  dialog: {
-    include: [{ model: Dialog, include: ['roster', 'messages'] }] // 'roster', 'messages'
-  },
-  getDialog: value => {
-    return {
-      include: [{ model: Dialog, include: value }]
-    }
-  },
+  dialog: { include: [{ model: Dialog, include: ['roster', 'messages'] }] }
 }))
 @Table({ tableName: 'user_dialogs' })
-class UserDialog extends Model<UserDialog> {
+class UserDialog extends Model<UserDialogAttributes, UserDialogCreationAttributes> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
@@ -45,6 +51,12 @@ class UserDialog extends Model<UserDialog> {
   @Default(false)
   @Column({ type: DataType.BOOLEAN })
   declare active: boolean
+
+  @UpdatedAt
+  declare updated_at: Date
+
+  @CreatedAt
+  declare created_at: Date
 
   // Associations
 

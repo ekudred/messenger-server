@@ -28,7 +28,7 @@ class ChatController {
   }
 
   @OnMessage('chat:join')
-  async joinChat(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: JoinChatDTO) {
+  async joinChat(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: JoinChatDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -37,9 +37,9 @@ class ChatController {
     ])
 
     try {
-      const data = await ChatService.getChat(message)
+      const data = await ChatService.getChat(body)
 
-      socket.join(`chat_room=${data.chat.id}`)
+      socket.join(`chat_room=${data.chat.chat.id}`)
       socket.emit('chat:joined', data)
     } catch (error: any) {
       console.error(error)
@@ -48,7 +48,7 @@ class ChatController {
   }
 
   @OnMessage('chat:leave')
-  async leaveChat(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: LeaveChatDTO) {
+  async leaveChat(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: LeaveChatDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -57,8 +57,8 @@ class ChatController {
     ])
 
     try {
-      socket.leave(`chat_room=${message.id}`)
-      socket.emit('chat:left', message)
+      socket.leave(`chat_room=${body.id}`)
+      socket.emit('chat:left', body)
     } catch (error: any) {
       console.error(error)
       socket.emit('chat:left', { error: { message: error.message } })
@@ -66,25 +66,26 @@ class ChatController {
   }
 
   @OnMessage('message:send')
-  async sendMessage(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: SendMessageDTO) {
+  async sendMessage(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: SendMessageDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
         emitAtError: { emits: [{ event: 'message:sent', arg: message => ({ error: { message } }) }] }
       })
     ])
-    // приходит еще date в message !!!!!!!
+
     try {
-      const data = await MessageService.sendMessage(message)
+      const data = await MessageService.sendMessage(body)
 
       if (data.message.chatType === 'user') {
-        const { created } = await ChatService.handleUserDialogActive({ dialogID: data.message.chatID })
-
-        // if (created) {
-        //
-        // }
+        await ChatService.handleUserDialog({ dialogID: data.message.chatID })
       }
 
+      const { message, roster, chat } = await MessageService.handleNewMessage({ message: data.message })
+
+      roster.forEach(item => {
+        io.of('/chat_manager').to(`user_room=${item.id}`).emit('chats:new_message', { chat, message })
+      })
       io.of(namespace).to(`chat_room=${data.message.chatID}`).emit('message:sent', data)
     } catch (error: any) {
       console.error(error)

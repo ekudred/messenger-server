@@ -8,6 +8,7 @@ class DataBase {
   public static models: { [key: string]: any } = this.getModels()
 
   private static getModels() {
+    // return sequelize.models
     const modelsPath = __dirname + '/models'
     const modelExtension = /model.ts$/
 

@@ -5,8 +5,8 @@ export interface Folder {
   name: string
   userID: string
   roster: (DialogChat | GroupChat)[]
-  createdAt: string
-  updatedAt: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 // CreateFolder
@@ -45,6 +45,20 @@ export interface GetFoldersOptions {
 
 export interface GetFoldersResponse {
   folders: Folder[]
+}
+
+// SearchChats
+
+export interface SearchFolderChatsOptions {
+  userID: string
+  folderID: string
+  value: string
+}
+
+export interface SearchFolderChatsResponse {
+  userID: string
+  folderID: string
+  chats: (DialogChat | GroupChat)[]
 }
 
 // DeleteFolder

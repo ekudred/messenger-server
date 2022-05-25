@@ -5,22 +5,21 @@ import DialogModel from '../database/models/dialog.model'
 
 class TransformedDialog implements Dialog {
   public id: string
-  public comrade: TransformedUser
   public roster: TransformedUser[]
   public messages: TransformedMessage[]
-  public createdAt: string
-  public updatedAt: string
+  public updatedMessagesAt: Date
+  public createdAt: Date
+  public updatedAt: Date
 
-  constructor(model: DialogModel, userID: string) {
-    const messages = model.messages ?? []
-    const roster = model.roster ?? []
-
+  constructor(model: DialogModel) {
     this.id = model.id
-    this.comrade = new TransformedUser(roster.find(dialogRoster => dialogRoster.user.id !== userID)!.user)
-    this.roster = roster.map(model => new TransformedUser(model.user))
-    this.messages = messages.map(dialogMessage => new TransformedMessage({ chatType: 'user', chatID: model.id, model: dialogMessage }))
-    this.createdAt = model.createdAt
-    this.updatedAt = model.updatedAt
+    this.roster = model.roster.map(item => new TransformedUser(item.user))
+    this.messages = model.messages.map(message => new TransformedMessage({
+      chatType: 'user', chatID: model.id, model: message
+    }))
+    this.updatedMessagesAt = model.updated_messages_at
+    this.createdAt = model.created_at
+    this.updatedAt = model.updated_at
   }
 }
 

@@ -15,16 +15,17 @@ import {
   GetFoldersDTO,
   DeleteFolderDTO,
   EditFolderDTO,
-  GetChatsDTO
-} from '../../dtos/socket/folder-roster.dto'
+  GetChatsDTO,
+  SearchFolderChatsDTO
+} from '../../dtos/socket/folder-manager.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
 import { authSocketMiddleware } from '../../middlewares/socket/auth.socket-middleware'
 import { authRolesArray } from '../../utils/constants'
 
-const namespace = '/folder_roster'
+const namespace = '/folder_manager'
 
 @SocketController(namespace)
-class FolderRosterController {
+class FolderManagerController {
   @OnConnect()
   connection(@ConnectedSocket() connectedSocket: any) {
   }
@@ -34,7 +35,7 @@ class FolderRosterController {
   }
 
   @OnMessage('folder:create')
-  async createFolder(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: CreateFolderDTO) {
+  async createFolder(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: CreateFolderDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -43,9 +44,9 @@ class FolderRosterController {
     ])
 
     try {
-      const data = await FolderService.createFolder(message)
+      const data = await FolderService.createFolder(body)
 
-      io.of(namespace).to(`user_room=${message.userID}`).emit('folder:created', data)
+      io.of(namespace).to(`user_room=${body.userID}`).emit('folder:created', data)
     } catch (error: any) {
       console.error(error)
       socket.emit('folder:created', { error: { message: error.message } })
@@ -53,7 +54,7 @@ class FolderRosterController {
   }
 
   @OnMessage('folder:edit')
-  async editFolder(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: EditFolderDTO) {
+  async editFolder(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: EditFolderDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -62,7 +63,7 @@ class FolderRosterController {
     ])
 
     try {
-      const data = await FolderService.editFolder(message)
+      const data = await FolderService.editFolder(body)
 
       io.of(namespace).to(`user_room=${socket.handshake.auth.user.id}`).emit('folder:edited', data)
     } catch (error: any) {
@@ -72,7 +73,7 @@ class FolderRosterController {
   }
 
   @OnMessage('folder:delete')
-  async deleteFolder(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: DeleteFolderDTO) {
+  async deleteFolder(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: DeleteFolderDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -81,7 +82,7 @@ class FolderRosterController {
     ])
 
     try {
-      const data = await FolderService.deleteFolder(message)
+      const data = await FolderService.deleteFolder(body)
 
       io.of(namespace).to(`user_room=${socket.handshake.auth.user.id}`).emit('folder:deleted', data)
     } catch (error: any) {
@@ -91,7 +92,7 @@ class FolderRosterController {
   }
 
   @OnMessage('folders:get')
-  async getFolders(@ConnectedSocket() connectedSocket: any, @MessageBody() message: GetFoldersDTO) {
+  async getFolders(@ConnectedSocket() connectedSocket: any, @MessageBody() body: GetFoldersDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -100,8 +101,9 @@ class FolderRosterController {
     ])
 
     try {
-      const data = await FolderService.getFolders(message)
+      const data = await FolderService.getFolders(body)
 
+      socket.join(`folder_manager_room=${body.userID}`)
       socket.emit('folders:got', data)
     } catch (error: any) {
       console.error(error)
@@ -110,7 +112,7 @@ class FolderRosterController {
   }
 
   @OnMessage('chats:get')
-  async getChats(@ConnectedSocket() connectedSocket: any, @MessageBody() message: GetChatsDTO) {
+  async getChats(@ConnectedSocket() connectedSocket: any, @MessageBody() body: GetChatsDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -119,7 +121,7 @@ class FolderRosterController {
     ])
 
     try {
-      const data = await ChatService.getChats(message)
+      const data = await ChatService.getChats(body)
 
       socket.emit('chats:got', data)
     } catch (error: any) {
@@ -127,6 +129,25 @@ class FolderRosterController {
       socket.emit('chats:got', { error: { message: error.message } })
     }
   }
+
+  @OnMessage('chats:search')
+  async searchFolderChats(@ConnectedSocket() connectedSocket: any, @MessageBody() body: SearchFolderChatsDTO) {
+    const socket = useSocketMiddleware(connectedSocket, [
+      authSocketMiddleware({
+        permittedRoles: authRolesArray,
+        emitAtError: { emits: [{ event: 'chats:search', arg: message => ({ error: { message } }) }] }
+      })
+    ])
+
+    try {
+      const data = await FolderService.searchFolderChats(body)
+
+      socket.emit('chats:searched', data)
+    } catch (error: any) {
+      console.error(error)
+      socket.emit('chats:searched', { error: { message: error.message } })
+    }
+  }
 }
 
-export default FolderRosterController
+export default FolderManagerController

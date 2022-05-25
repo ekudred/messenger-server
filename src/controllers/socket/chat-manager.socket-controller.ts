@@ -14,15 +14,15 @@ import {
   GetDialogsDTO,
   SearchChatsDTO,
   CreateGroupDTO
-} from '../../dtos/socket/chat-roster.dto'
+} from '../../dtos/socket/chat-manager.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
 import { authSocketMiddleware } from '../../middlewares/socket/auth.socket-middleware'
 import { authRolesArray } from '../../utils/constants'
 
-const namespace = '/chat_roster'
+const namespace = '/chat_manager'
 
 @SocketController(namespace)
-class ChatRosterController {
+class ChatManagerController {
   @OnConnect()
   connection(@ConnectedSocket() socket: any) {
   }
@@ -32,7 +32,7 @@ class ChatRosterController {
   }
 
   @OnMessage('chats:get')
-  async getChats(@ConnectedSocket() connectedSocket: any, @MessageBody() message: GetChatsDTO) {
+  async getChats(@ConnectedSocket() connectedSocket: any, @MessageBody() body: GetChatsDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -41,11 +41,9 @@ class ChatRosterController {
     ])
 
     try {
-      const data = await ChatService.getChats(message)
-      // const { dialogs, groups } = data
+      const data = await ChatService.getChats(body)
 
-      // dialogs.forEach((dialog: any) => socket.join(dialog.id))
-
+      socket.join(`chat_manager_room=${body.userID}`)
       socket.emit('chats:got', data)
     } catch (error: any) {
       console.error(error)
@@ -54,7 +52,7 @@ class ChatRosterController {
   }
 
   @OnMessage('chats:search')
-  async searchChats(@ConnectedSocket() connectedSocket: any, @MessageBody() message: SearchChatsDTO) {
+  async searchChats(@ConnectedSocket() connectedSocket: any, @MessageBody() body: SearchChatsDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -63,7 +61,7 @@ class ChatRosterController {
     ])
 
     try {
-      const data = await ChatService.searchChats(message)
+      const data = await ChatService.searchChats(body)
 
       socket.emit('chats:searched', data)
     } catch (error: any) {
@@ -73,7 +71,7 @@ class ChatRosterController {
   }
 
   @OnMessage('dialogs:get')
-  async getDialogs(@ConnectedSocket() connectedSocket: any, @MessageBody() message: GetDialogsDTO) {
+  async getDialogs(@ConnectedSocket() connectedSocket: any, @MessageBody() body: GetDialogsDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -82,7 +80,7 @@ class ChatRosterController {
     ])
 
     try {
-      const data = await ChatService.getDialogs(message)
+      const data = await ChatService.getDialogs(body)
 
       socket.emit('dialogs:got', data)
     } catch (error: any) {
@@ -92,7 +90,7 @@ class ChatRosterController {
   }
 
   @OnMessage('group:create')
-  async createGroup(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() message: CreateGroupDTO) {
+  async createGroup(@SocketIO() io: any, @ConnectedSocket() connectedSocket: any, @MessageBody() body: CreateGroupDTO) {
     const socket = useSocketMiddleware(connectedSocket, [
       authSocketMiddleware({
         permittedRoles: authRolesArray,
@@ -101,10 +99,10 @@ class ChatRosterController {
     ])
 
     try {
-      const data = await ChatService.createGroup(message)
+      const data = await ChatService.createGroup(body)
 
-      io.of(namespace).to(`user_room=${message.creatorID}`).emit('group:created', data)
-      message.roster.forEach(user => io.of(namespace).to(`user_room=${user.userID}`).emit('group:created', data))
+      io.of(namespace).to(`user_room=${body.creatorID}`).emit('group:created', data)
+      body.roster.forEach(user => io.of(namespace).to(`user_room=${user.userID}`).emit('group:created', data))
     } catch (error: any) {
       console.error(error)
       socket.emit('group:created', { error: { message: error.message } })
@@ -112,4 +110,4 @@ class ChatRosterController {
   }
 }
 
-export default ChatRosterController
+export default ChatManagerController

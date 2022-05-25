@@ -18,8 +18,8 @@ class TransformedFolder implements Folder {
   public name: string
   public userID: string
   public roster: (TransformedChatDialog | TransformedChatGroup)[]
-  public createdAt: string
-  public updatedAt: string
+  public createdAt: Date
+  public updatedAt: Date
 
   constructor(model: FolderModel) {
     this.id = model.id
@@ -27,15 +27,15 @@ class TransformedFolder implements Folder {
     this.name = model.name
 
     const chatDialogs: TransformedChatDialog[] = model.dialogs.map(folderDialog => ({
-      type: 'user', chat: new TransformedDialog(folderDialog.dialog, model.user_id)
+      type: 'user', chat: new TransformedDialog(folderDialog.dialog)
     }))
     const chatGroups: TransformedChatGroup[] = model.groups.map(folderGroup => ({
       type: 'group', chat: new TransformedGroup(folderGroup.group)
     }))
 
     this.roster = [...chatDialogs, ...chatGroups]
-    this.createdAt = model.createdAt
-    this.updatedAt = model.updatedAt
+    this.createdAt = model.created_at
+    this.updatedAt = model.updated_at
   }
 }
 

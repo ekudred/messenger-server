@@ -1,7 +1,8 @@
-import { Message } from '../services/message/types'
+import { Message, MessageUnread } from '../services/message/types'
 import { ChatType } from '../services/chat/types'
 import DialogMessageModel from '../database/models/dialog-message.model'
 import GroupMessageModel from '../database/models/group-message.model'
+import TransformedUser from './user'
 
 interface TransformedMessageConstructor {
   chatType: ChatType
@@ -11,23 +12,25 @@ interface TransformedMessageConstructor {
 
 class TransformedMessage implements Message {
   public id: string
-  public userID: string
+  public author: TransformedUser
   public chatType: ChatType
   public chatID: string
   public text: string
-  public createdAt: string
-  public updatedAt: string
+  public unread: MessageUnread[]
+  public createdAt: Date
+  public updatedAt: Date
 
   constructor(options: TransformedMessageConstructor) {
     const { chatType, chatID, model } = options
 
     this.id = model.id
-    this.userID = model.user_id
+    this.author = new TransformedUser(model.user)
     this.chatType = chatType
     this.chatID = chatID
     this.text = model.text
-    this.createdAt = model.createdAt
-    this.updatedAt = model.updatedAt
+    this.unread = model.unread ? model.unread.map(item => ({ userID: item.roster_item.user.id })) : []
+    this.createdAt = model.created_at
+    this.updatedAt = model.updated_at
   }
 }
 

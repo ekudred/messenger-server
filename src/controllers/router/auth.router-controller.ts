@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { JsonController, Param, CookieParam, Body, Post, Get, Res, Req, UseBefore, Redirect } from 'routing-controllers'
 import 'reflect-metadata'
 
-import Index from '../../services/auth'
+import AuthService from '../../services/auth'
 import { SignUpDTO, SignInDTO, ConfirmUserDTO } from '../../dtos/router/auth.dto'
 import { authRouterMiddleware } from '../../middlewares/router/auth.router-middleware'
 import { cookieOptionsToken, authRolesArray } from '../../utils/constants'
@@ -11,7 +11,7 @@ import { cookieOptionsToken, authRolesArray } from '../../utils/constants'
 class AuthController {
   @Post('/sign-up')
   async signUp(@Body() body: SignUpDTO) {
-    const data = await Index.signUp(body)
+    const data = await AuthService.signUp(body)
 
     return data
   }
@@ -20,7 +20,7 @@ class AuthController {
   async signIn(@Body() body: SignInDTO, @Req() req: Request, @Res() res: Response) {
     const clientID = req.headers['client-id'] as string
 
-    const data = await Index.signIn({ ...body, clientID })
+    const data = await AuthService.signIn({ ...body, clientID })
     res.cookie('refreshToken', data.refreshToken, cookieOptionsToken)
 
     return data
@@ -29,17 +29,17 @@ class AuthController {
   @Post('/sign-out')
   @UseBefore(authRouterMiddleware(authRolesArray))
   async signOut(@CookieParam('refreshToken') refreshToken: string, @Res() res: Response) {
-    await Index.signOut({ refreshToken })
+    await AuthService.signOut({ refreshToken })
     res.clearCookie('refreshToken')
 
     return null
   }
 
-  @Get('/refresh')
+  @Post('/refresh')
   async refresh(@CookieParam('refreshToken') refreshToken: string, @Req() req: Request, @Res() res: Response) {
     const clientID = req.headers['client-id'] as string
 
-    const data = await Index.refresh({ refreshToken, clientID })
+    const data = await AuthService.refresh({ refreshToken, clientID })
     res.cookie('refreshToken', data.refreshToken, cookieOptionsToken)
 
     return data
@@ -48,7 +48,7 @@ class AuthController {
   @Get('/activate/:link')
   @Redirect(process.env.CLIENT_URL + '/auth/sign-in')
   async activate(@Param('link') activationLink: string) {
-    await Index.activate({ activationLink })
+    await AuthService.activate({ activationLink })
 
     return null
   }
@@ -56,7 +56,7 @@ class AuthController {
   @Post('/confirm')
   @UseBefore(authRouterMiddleware(authRolesArray))
   async confirmUser(@Body() body: ConfirmUserDTO) {
-    const data = await Index.confirmUser(body)
+    const data = await AuthService.confirmUser(body)
 
     return data
   }

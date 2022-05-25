@@ -1,13 +1,39 @@
-import { Model, Table, Column, ForeignKey, BelongsTo, DefaultScope, DataType, Default } from 'sequelize-typescript'
+import {
+  Model,
+  Table,
+  Column,
+  ForeignKey,
+  BelongsTo,
+  DefaultScope,
+  Scopes,
+  Default,
+  DataType,
+  UpdatedAt,
+  CreatedAt
+} from 'sequelize-typescript'
+import { Optional } from 'sequelize'
 
 import Folder from './folder.model'
 import Dialog from './dialog.model'
 
+export interface FolderDialogRosterAttributes {
+  id: string
+  folder_id: string
+  dialog_id: string
+  updated_at: Date
+  created_at: Date
+}
+
+export type FolderDialogRosterCreationAttributes = Optional<FolderDialogRosterAttributes, 'id' | 'updated_at' | 'created_at'>
+
 @DefaultScope(() => ({
-  include: [{ model: Dialog, include: ['roster'] }], // 'roster', 'messages'
+  include: [{ model: Dialog, include: ['roster', 'messages'] }]
+}))
+@Scopes(() => ({
+  dialog: { include: [{ model: Dialog, include: ['roster', 'messages'] }] }
 }))
 @Table({ tableName: 'folder_dialog_roster' })
-class FolderDialogRoster extends Model<FolderDialogRoster> {
+class FolderDialogRoster extends Model<FolderDialogRosterAttributes, FolderDialogRosterCreationAttributes> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
@@ -19,6 +45,12 @@ class FolderDialogRoster extends Model<FolderDialogRoster> {
   @ForeignKey(() => Dialog)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare dialog_id: string
+
+  @UpdatedAt
+  declare updated_at: Date
+
+  @CreatedAt
+  declare created_at: Date
 
   // Associations
 
