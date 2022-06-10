@@ -2,15 +2,21 @@ const bcrypt = require('bcrypt')
 const uuid = require('uuid')
 import { Op } from 'sequelize'
 
+import DataBase from '../../database'
 import ErrorAPI from '../../exceptions/ErrorAPI'
 import AuthTokenService from '../auth-token'
-import DataBase from '../../database'
 import Storage from '../../storage'
-import { CreateUserOptions, UpdateUserOptions, DeleteUserOptions } from './types'
-import User from '../../helpers/user'
+import {
+  CreateUserOptions,
+  UpdateUserOptions,
+  SearchUsersOptions,
+  SearchUsersResponse,
+  DeleteUserOptions
+} from './types'
+import TransformedUser from '../../helpers/user'
 
 class UserService {
-  public static async createUser(options: CreateUserOptions) {
+  static async createUser(options: CreateUserOptions) {
     const { email, username, password } = options
 
     const checkUser = await DataBase.models.User.findOne({ where: { [Op.or]: [{ email }, { username }] } })
@@ -27,19 +33,33 @@ class UserService {
     return { user }
   }
 
-  public static async findUser(where: object) {
+  static async findUser(where: object) {
     const user = await DataBase.models.User.findOne({ where })
 
-    return { user: new User(user) }
+    return { user: new TransformedUser(user) }
   }
 
-  public static async findAllUsers() {
+  static async findAllUsers() {
     const users = await DataBase.models.User.findAll()
 
     return { users }
   }
 
-  public static async editUser(update: UpdateUserOptions, where: object) {
+  static async searchUsers(options: SearchUsersOptions): Promise<SearchUsersResponse> {
+    const { userID, value } = options
+
+    const users = await DataBase.models.User.scope(['safe']).findAll({
+      where: {
+        id: { [Op.not]: userID },
+        username: { [Op.like]: `%${value}%` }
+      },
+      order: [['created_at', 'DESC']]
+    })
+
+    return users.map((user: any) => new TransformedUser(user))
+  }
+
+  static async editUser(update: UpdateUserOptions, where: object) {
     const user = await DataBase.models.User.findOne({ where })
 
     Object.entries(update).map(async ([field, value]) => {
@@ -86,10 +106,10 @@ class UserService {
 
     user.save()
 
-    return { user: new User(user) }
+    return { user: new TransformedUser(user) }
   }
 
-  public static async deleteUser(options: DeleteUserOptions) {
+  static async deleteUser(options: DeleteUserOptions) {
     await AuthTokenService.deleteToken({ user_id: options.id })
 
     await DataBase.models.User.destroy({ where: { id: options.id } })

@@ -1,9 +1,8 @@
 const bcrypt = require('bcrypt')
-const uuid = require('uuid')
 
 import ErrorAPI from '../../exceptions/ErrorAPI'
 import AuthTokenService from '../auth-token'
-import Index from '../user'
+import UserService from '../user'
 import MailService from '../mail'
 import DataBase from '../../database'
 import User from '../../helpers/user'
@@ -18,8 +17,8 @@ import {
 import { getActivationMailOptions } from '../../utils/mail-options'
 
 class AuthService {
-  public static async signUp(options: SignUpOptions) {
-    const { user } = await Index.createUser(options)
+  static async signUp(options: SignUpOptions) {
+    const { user } = await UserService.createUser(options)
 
     const mailOptions = getActivationMailOptions({
       to: user.email,
@@ -33,7 +32,7 @@ class AuthService {
     return { message }
   }
 
-  public static async signIn(options: SignInOptions) {
+  static async signIn(options: SignInOptions) {
     const { username, password, clientID } = options
 
     const user = await DataBase.models.User.findOne({ where: { username } })
@@ -51,20 +50,17 @@ class AuthService {
       refreshToken: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN!
     })
     await AuthTokenService.createToken({ user_id: transformedUser.id, client_id: clientID }, tokens.refreshToken, clientID, {
-      id: uuid.v4(),
-      user_id: transformedUser.id,
-      refresh_token: tokens.refreshToken,
-      client_id: clientID
+      user_id: transformedUser.id, refresh_token: tokens.refreshToken, client_id: clientID
     })
 
     return { ...tokens, user: transformedUser }
   }
 
-  public static async signOut(options: SignOutOptions) {
+  static async signOut(options: SignOutOptions) {
     return await AuthTokenService.deleteToken({ refresh_token: options.refreshToken })
   }
 
-  public static async refresh(options: RefreshOptions) {
+  static async refresh(options: RefreshOptions) {
     const { refreshToken, clientID } = options
     if (!refreshToken || !clientID) throw ErrorAPI.unAuthError()
 
@@ -86,7 +82,7 @@ class AuthService {
     return { ...tokens, user: transformedUser }
   }
 
-  public static async activate(options: ActiveOptions) {
+  static async activate(options: ActiveOptions) {
     const user = await DataBase.models.User.findOne({ where: { activation_link: options.activationLink } })
     if (!user) throw ErrorAPI.badRequest('Invalid activation link')
 
@@ -94,7 +90,7 @@ class AuthService {
     user.save()
   }
 
-  public static async confirmUser(options: ConfirmUserOptions) {
+  static async confirmUser(options: ConfirmUserOptions) {
     const { id, password } = options
 
     const user = await DataBase.models.User.findOne({ where: { id } })

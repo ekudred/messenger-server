@@ -9,13 +9,11 @@ import {
 } from 'socket-controllers'
 
 import FolderService from '../../services/folder'
-import ChatService from '../../services/chat'
 import {
   CreateFolderDTO,
   GetFoldersDTO,
   DeleteFolderDTO,
   EditFolderDTO,
-  GetChatsDTO,
   SearchFolderChatsDTO
 } from '../../dtos/socket/folder-manager.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
@@ -68,7 +66,7 @@ class FolderManagerController {
       io.of(namespace).to(`user_room=${socket.handshake.auth.user.id}`).emit('folder:edited', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('folder:edited', { error: { message: error.message } })
+      socket.emit('folder:edited', { error: { message: error.message, extra: { folderID: body.folderID } } })
     }
   }
 
@@ -87,7 +85,7 @@ class FolderManagerController {
       io.of(namespace).to(`user_room=${socket.handshake.auth.user.id}`).emit('folder:deleted', data)
     } catch (error: any) {
       console.error(error)
-      socket.emit('folder:deleted', { error: { message: error.message } })
+      socket.emit('folder:deleted', { error: { message: error.message, extra: { folderID: body.folderID } } })
     }
   }
 
@@ -101,32 +99,13 @@ class FolderManagerController {
     ])
 
     try {
-      const data = await FolderService.getFolders(body)
+      const folders = await FolderService.findFolders(body)
 
       socket.join(`folder_manager_room=${body.userID}`)
-      socket.emit('folders:got', data)
+      socket.emit('folders:got', { userID: body.userID, folders })
     } catch (error: any) {
       console.error(error)
       socket.emit('folders:got', { error: { message: error.message } })
-    }
-  }
-
-  @OnMessage('chats:get')
-  async getChats(@ConnectedSocket() connectedSocket: any, @MessageBody() body: GetChatsDTO) {
-    const socket = useSocketMiddleware(connectedSocket, [
-      authSocketMiddleware({
-        permittedRoles: authRolesArray,
-        emitAtError: { emits: [{ event: 'chats:got', arg: message => ({ error: { message } }) }] }
-      })
-    ])
-
-    try {
-      const data = await ChatService.getChats(body)
-
-      socket.emit('chats:got', data)
-    } catch (error: any) {
-      console.error(error)
-      socket.emit('chats:got', { error: { message: error.message } })
     }
   }
 
@@ -142,10 +121,10 @@ class FolderManagerController {
     try {
       const data = await FolderService.searchFolderChats(body)
 
-      socket.emit('chats:searched', data)
+      socket.emit('chats:searched', { userID: body.userID, folderID: body.folderID, ...data })
     } catch (error: any) {
       console.error(error)
-      socket.emit('chats:searched', { error: { message: error.message } })
+      socket.emit('chats:searched', { error: { message: error.message, extra: { folderID: body.folderID } } })
     }
   }
 }

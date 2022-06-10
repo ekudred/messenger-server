@@ -1,28 +1,8 @@
-import { Message } from '../message/types'
+import { Dialog } from '../dialog/types'
+import { Group } from '../group/types'
 import { User } from '../user/types'
 
 export type ChatType = 'user' | 'group'
-
-export interface Group {
-  id: string
-  name: string
-  avatar: string
-  creator: User
-  roster: User[]
-  messages: Message[]
-  updatedMessagesAt: Date
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface Dialog {
-  id: string
-  roster: User[]
-  messages: Message[]
-  updatedMessagesAt: Date
-  createdAt: Date
-  updatedAt: Date
-}
 
 export interface GroupChat {
   type: 'group',
@@ -42,10 +22,7 @@ export interface GetChatOptions {
   userID: string
 }
 
-export interface GetChatResponse {
-  userID: string
-  chat: DialogChat | GroupChat
-}
+export type GetChatResponse =  (DialogChat | GroupChat) & { created: boolean }
 
 // GetChats
 
@@ -54,19 +31,7 @@ export interface GetChatsOptions {
 }
 
 export interface GetChatsResponse {
-  userID: string
   chats: (DialogChat | GroupChat)[]
-}
-
-// GetDialogs
-
-export interface GetDialogsOptions {
-  userID: string
-}
-
-export interface GetDialogsResponse {
-  userID: string
-  dialogs: Dialog[]
 }
 
 // SearchChats
@@ -77,40 +42,6 @@ export interface SearchChatsOptions {
 }
 
 export interface SearchChatsResponse {
-  userID: string
   chats: (DialogChat | GroupChat)[]
   users: User[]
 }
-
-// CreateDialog
-
-export interface CreateDialogOptions {
-  userID: string
-  comradeID: string
-}
-
-export interface CreateDialogResponse {
-  userID: string
-  dialog: Dialog
-}
-
-// CreateGroup
-
-export interface CreateGroupOptions {
-  creatorID: string
-  name: string
-  image: string
-  roster: { userID: string }[]
-}
-
-export interface CreateGroupResponse {
-  userID: string
-  group: Group
-}
-
-//  HandleUserDialogActive
-
-export interface HandleUserDialogOptions {
-  dialogID: string
-}
-export type HandleUserDialogResponse = void

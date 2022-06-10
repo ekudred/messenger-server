@@ -1,4 +1,6 @@
 import { DialogChat, GroupChat } from '../chat/types'
+import { Dialog } from '../dialog/types'
+import { Group } from '../group/types'
 
 export interface Folder {
   id: string
@@ -37,16 +39,6 @@ export interface EditFolderResponse {
   folder: Folder
 }
 
-// GetFolders
-
-export interface GetFoldersOptions {
-  userID: string
-}
-
-export interface GetFoldersResponse {
-  folders: Folder[]
-}
-
 // SearchChats
 
 export interface SearchFolderChatsOptions {
@@ -56,8 +48,6 @@ export interface SearchFolderChatsOptions {
 }
 
 export interface SearchFolderChatsResponse {
-  userID: string
-  folderID: string
   chats: (DialogChat | GroupChat)[]
 }
 
@@ -72,3 +62,38 @@ export interface DeleteFolderResponse {
   folderID: string,
   folderName: string
 }
+
+// SearchFolderDialogs
+
+export interface SearchFolderDialogsOptions {
+  userID: string
+  folderID: string
+  value: string
+}
+
+export type SearchFolderDialogsResponse = Dialog[]
+
+// FindFolderGroups
+
+export interface SearchFolderGroupsOptions {
+  folderID: string
+  value: string
+}
+
+export type SearchFolderGroupsResponse = Group[]
+
+// FindFolder
+
+export interface FindFolderOptions {
+  id: string
+}
+
+export type FindFolderResponse = Folder
+
+// FindFolders
+
+export interface FindFoldersOptions {
+  userID: string
+}
+
+export type FindFoldersResponse = Folder[]

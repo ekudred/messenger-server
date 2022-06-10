@@ -2,11 +2,11 @@ import {
   Table,
   Model,
   Column,
-  Default,
   ForeignKey,
   BelongsTo,
-  CreatedAt,
+  Default,
   UpdatedAt,
+  CreatedAt,
   Scopes,
   DataType
 } from 'sequelize-typescript'
@@ -14,24 +14,26 @@ import { Optional } from 'sequelize'
 
 import Group from './group.model'
 import GroupMessage from './group-message.model'
-import GroupRoster from './group-roster.model'
 
-export interface GroupMessageUnreadAttributes {
+export interface GroupLastMessageAttributes {
   id: string
+  dialog_id: string
   message_id: string
-  roster_item_id: string
-  group_id: string
   updated_at: Date
   created_at: Date
 }
 
-export type GroupMessageUnreadCreationAttributes = Optional<GroupMessageUnreadAttributes, 'id' | 'updated_at' | 'created_at'>
+export type GroupLastMessageCreationAttributes = Optional<GroupLastMessageAttributes, 'id' | 'updated_at' | 'created_at'>
 
 @Scopes(() => ({
   groupChat: ({ whereMessages }: any) => {
     return {
       include: [{
-        model: Group.scope([{ method: ['roster', {}] }, { method: ['messages', { whereMessages }] }, { method: ['creator', {}] }]),
+        model: Group.scope([
+          { method: ['roster', {}] },
+          { method: ['messages', { whereMessages }] },
+          { method: ['creator', {}] }
+        ]),
         as: 'group'
       }]
     }
@@ -56,33 +58,21 @@ export type GroupMessageUnreadCreationAttributes = Optional<GroupMessageUnreadAt
         as: 'message'
       }]
     }
-  },
-  rosterItem: ({ whereUser }: any) => {
-    return {
-      include: [{
-        model: GroupRoster.scope([{ method: ['user', { where: whereUser }] }]),
-        as: 'roster_item'
-      }]
-    }
   }
 }))
-@Table({ tableName: 'group_message_unread' })
-class GroupMessageUnread extends Model<GroupMessageUnreadAttributes, GroupMessageUnreadCreationAttributes> {
+@Table({ tableName: 'group_last_messages' })
+class GroupLastMessage extends Model<GroupLastMessageAttributes, GroupLastMessageCreationAttributes> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare id: string
 
-  @ForeignKey(() => GroupMessage)
-  @Column({ type: DataType.UUID, primaryKey: true })
-  declare message_id: string
-
-  @ForeignKey(() => GroupRoster)
-  @Column({ type: DataType.UUID, primaryKey: true })
-  declare roster_item_id: string
-
   @ForeignKey(() => Group)
   @Column({ type: DataType.UUID, primaryKey: true })
   declare group_id: string
+
+  @ForeignKey(() => GroupMessage)
+  @Column({ type: DataType.UUID, primaryKey: true })
+  declare message_id: GroupMessage
 
   @UpdatedAt
   declare updated_at: Date
@@ -92,14 +82,11 @@ class GroupMessageUnread extends Model<GroupMessageUnreadAttributes, GroupMessag
 
   // Associations
 
-  @BelongsTo(() => Group)
-  declare group: Group
-
   @BelongsTo(() => GroupMessage)
   declare message: GroupMessage
 
-  @BelongsTo(() => GroupRoster)
-  declare roster_item: GroupRoster
+  @BelongsTo(() => Group)
+  declare group: Group
 }
 
-export default GroupMessageUnread
+export default GroupLastMessage

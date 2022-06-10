@@ -1,15 +1,17 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   Unique,
   IsEmail,
   Is,
   Default,
   AllowNull,
-  DataType,
   HasMany,
-  Scopes, UpdatedAt, CreatedAt
+  UpdatedAt,
+  CreatedAt,
+  Scopes,
+  DataType
 } from 'sequelize-typescript'
 import { Op, Optional } from 'sequelize'
 
@@ -31,7 +33,7 @@ import {
   rolesArray,
   defaultUserAvatarImage
 } from '../../utils/constants'
-import { userSafeAttributes } from '../constants'
+import { userSafeAttributes } from '../utils/constants'
 
 export interface UserAttributes {
   id: string
@@ -52,17 +54,7 @@ export interface UserAttributes {
 export type UserCreationAttributes = Optional<UserAttributes, 'id' | 'updated_at' | 'created_at'>
 
 @Scopes(() => ({
-  searchByUsername: value => {
-    return {
-      where: {
-        username: { [Op.like]: `%${value}%` }
-      },
-      attributes: userSafeAttributes
-    }
-  },
-  safeAttributes: {
-    attributes: userSafeAttributes
-  }
+  safe: { attributes: userSafeAttributes }
 }))
 @Table({ tableName: 'users' })
 class User extends Model<UserAttributes, UserCreationAttributes> {

@@ -21,15 +21,15 @@ class ErrorAPI extends Error {
     this.errors = errors
   }
 
-  public static badRequest(message: string, errors: string[] = []) {
+  static badRequest(message: string, errors: string[] = []) {
     return new ErrorAPI(400, message, errors)
   }
 
-  public static unAuthError(message: string = 'Unauthorized') {
+  static unAuthError(message: string = 'Unauthorized') {
     return new ErrorAPI(401, message)
   }
 
-  public static forbidden(message: string = 'No access') {
+  static forbidden(message: string = 'No access') {
     return new ErrorAPI(403, message)
   }
 }

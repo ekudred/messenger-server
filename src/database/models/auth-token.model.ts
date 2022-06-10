@@ -1,6 +1,6 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   Default,

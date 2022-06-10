@@ -1,21 +1,19 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   Default,
   BelongsTo,
-  Scopes,
-  DefaultScope,
   UpdatedAt,
   CreatedAt,
+  Scopes,
   DataType
 } from 'sequelize-typescript'
 import { Optional } from 'sequelize'
 
-import Dialog from './dialog.model'
 import User from './user.model'
-import { userSafeAttributes } from '../constants'
+import Dialog from './dialog.model'
 
 export interface DialogRosterAttributes {
   id: string
@@ -27,12 +25,35 @@ export interface DialogRosterAttributes {
 
 export type DialogRosterCreationAttributes = Optional<DialogRosterAttributes, 'id' | 'updated_at' | 'created_at'>
 
-@DefaultScope(() => ({
-  include: [{ model: User, attributes: userSafeAttributes }]
-}))
 @Scopes(() => ({
-  dialog: { include: [{ model: Dialog, include: ['roster', 'messages'] }] },
-  user: { include: [{ model: User, attributes: userSafeAttributes }] }
+  dialogChat: ({ whereMessages }: any) => {
+    return {
+      include: [{
+        model: Dialog.scope([
+          { method: ['roster', {}] },
+          { method: ['messages', { whereMessages }] }
+        ]),
+        as: 'dialog'
+      }]
+    }
+  },
+  dialog: ({}: any) => {
+    return {
+      include: [{
+        model: Dialog.scope([{ method: ['roster', {}] }, { method: ['lastMessage', {}] }, { method: ['unreadMessages', {}] }]),
+        as: 'dialog'
+      }]
+    }
+  },
+  user: ({ where }: any) => {
+    return {
+      include: [{
+        model: User.scope(['safe']),
+        as: 'user',
+        where
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'dialog_roster' })
 class DialogRoster extends Model<DialogRosterAttributes, DialogRosterCreationAttributes> {
@@ -56,11 +77,11 @@ class DialogRoster extends Model<DialogRosterAttributes, DialogRosterCreationAtt
 
   // Associations
 
-  @BelongsTo(() => User)
-  declare user: User
-
   @BelongsTo(() => Dialog)
   declare dialog: Dialog
+
+  @BelongsTo(() => User)
+  declare user: User
 }
 
 export default DialogRoster

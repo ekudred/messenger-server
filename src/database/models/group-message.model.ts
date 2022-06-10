@@ -1,26 +1,25 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   BelongsTo,
   Default,
-  DefaultScope,
   UpdatedAt,
   CreatedAt,
+  HasMany,
   Scopes,
-  DataType, HasMany
+  DataType
 } from 'sequelize-typescript'
 import { Optional } from 'sequelize'
 
 import User from './user.model'
 import Group from './group.model'
 import GroupMessageUnread from './group-message-unread.model'
-import { userSafeAttributes } from '../constants'
 
 export interface GroupMessageAttributes {
   id: string
-  user_id: string
+  author_id: string
   group_id: string
   text: string
   updated_at: Date
@@ -29,16 +28,48 @@ export interface GroupMessageAttributes {
 
 export type GroupMessageCreationAttributes = Optional<GroupMessageAttributes, 'id' | 'updated_at' | 'created_at'>
 
-@DefaultScope(() => ({
-  include: [
-    { model: User, attributes: userSafeAttributes },
-    { model: GroupMessageUnread }
-  ]
-}))
 @Scopes(() => ({
-  group: { include: [{ model: Group, include: ['roster', 'messages', 'creator'] }] },
-  unread: { include: [{ model: GroupMessageUnread }] },
-  user: { include: [{ model: User, attributes: userSafeAttributes }] }
+  groupChat: ({ whereMessages }: any) => {
+    return {
+      include: [{
+        model: Group.scope([
+          { method: ['roster', {}] },
+          { method: ['messages', { whereMessages }] },
+          { method: ['creator', {}] }
+        ]),
+        as: 'group'
+      }]
+    }
+  },
+  group: ({}: any) => {
+    return {
+      include: [{
+        model: Group.scope([
+          { method: ['roster', {}] },
+          { method: ['lastMessage', {}] },
+          { method: ['creator', {}] },
+          { method: ['unreadMessages', {}] }
+        ]),
+        as: 'group'
+      }]
+    }
+  },
+  unread: ({}: any) => {
+    return {
+      include: [{
+        model: GroupMessageUnread.scope([{ method: ['rosterItem', {}] }]),
+        as: 'unread'
+      }]
+    }
+  },
+  author: ({}: any) => {
+    return {
+      include: [{
+        model: User.scope(['safe']),
+        as: 'author'
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'group_messages' })
 class GroupMessage extends Model<GroupMessageAttributes, GroupMessageCreationAttributes> {
@@ -48,7 +79,7 @@ class GroupMessage extends Model<GroupMessageAttributes, GroupMessageCreationAtt
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, primaryKey: true })
-  declare user_id: string
+  declare author_id: string
 
   @ForeignKey(() => Group)
   @Column({ type: DataType.UUID, primaryKey: true })
@@ -65,11 +96,11 @@ class GroupMessage extends Model<GroupMessageAttributes, GroupMessageCreationAtt
 
   // Associations
 
+  @BelongsTo(() => User)
+  declare author: User
+
   @HasMany(() => GroupMessageUnread)
   declare unread: GroupMessageUnread[]
-
-  @BelongsTo(() => User)
-  declare user: User
 
   @BelongsTo(() => Group)
   declare group: Group

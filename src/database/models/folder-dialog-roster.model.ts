@@ -1,15 +1,14 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   BelongsTo,
-  DefaultScope,
-  Scopes,
   Default,
-  DataType,
   UpdatedAt,
-  CreatedAt
+  CreatedAt,
+  DataType,
+  Scopes
 } from 'sequelize-typescript'
 import { Optional } from 'sequelize'
 
@@ -26,11 +25,30 @@ export interface FolderDialogRosterAttributes {
 
 export type FolderDialogRosterCreationAttributes = Optional<FolderDialogRosterAttributes, 'id' | 'updated_at' | 'created_at'>
 
-@DefaultScope(() => ({
-  include: [{ model: Dialog, include: ['roster', 'messages'] }]
-}))
 @Scopes(() => ({
-  dialog: { include: [{ model: Dialog, include: ['roster', 'messages'] }] }
+  folder: ({}: any) => {
+    return {
+      include: [{
+        model: Folder.scope([
+          { method: ['dialogs', {}] },
+          { method: ['groups', {}] }
+        ]),
+        as: 'folder'
+      }]
+    }
+  },
+  dialog: ({}: any) => {
+    return {
+      include: [{
+        model: Dialog.scope([
+          { method: ['roster', {}] },
+          { method: ['lastMessage', {}] },
+          { method: ['unreadMessages', {}] }
+        ]),
+        as: 'dialog'
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'folder_dialog_roster' })
 class FolderDialogRoster extends Model<FolderDialogRosterAttributes, FolderDialogRosterCreationAttributes> {

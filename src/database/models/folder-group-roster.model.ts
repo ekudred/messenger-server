@@ -1,13 +1,14 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   BelongsTo,
-  Scopes,
   Default,
-  DefaultScope,
-  DataType, UpdatedAt, CreatedAt
+  UpdatedAt,
+  CreatedAt,
+  Scopes,
+  DataType
 } from 'sequelize-typescript'
 import { Op, Optional } from 'sequelize'
 
@@ -24,24 +25,32 @@ export interface FolderGroupRosterAttributes {
 
 export type FolderGroupRosterCreationAttributes = Optional<FolderGroupRosterAttributes, 'id' | 'updated_at' | 'created_at'>
 
-@DefaultScope(() => ({
-  include: [{ model: Group, include: ['roster', 'messages', 'creator'] }]
-}))
 @Scopes(() => ({
-  searchLikeName: value => {
+  folder: ({}: any) => {
     return {
-      include: [
-        {
-          model: Group,
-          include: ['roster', 'messages', 'creator'],
-          where: {
-            name: { [Op.like]: `%${value}%` }
-          }
-        }
-      ]
+      include: [{
+        model: Folder.scope([
+          { method: ['dialogs', {}] },
+          { method: ['groups', {}] }
+        ]),
+        as: 'folder'
+      }]
     }
   },
-  group: { include: [{ model: Group, include: ['roster', 'messages', 'creator'] }] }
+  group: ({ where }: any) => {
+    return {
+      include: [{
+        model: Group.scope([
+          { method: ['roster', {}] },
+          { method: ['lastMessage', {}] },
+          { method: ['creator', {}] },
+          { method: ['unreadMessages', {}] }
+        ]),
+        as: 'group',
+        where
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'folder_group_roster' })
 class FolderGroupRoster extends Model<FolderGroupRosterAttributes, FolderGroupRosterCreationAttributes> {

@@ -42,6 +42,26 @@ export interface HandleNewMessageResponse {
   roster: User[]
 }
 
+// ViewMessage
+
+export interface ViewMessagesOptions {
+  userID: string
+  chatType: ChatType
+  chatID: string
+  roster: User[]
+  viewMessages: { id: string }[]
+  unreadMessages: number
+}
+
+export interface ViewMessagesResponse {
+  userID: string
+  chatType: ChatType
+  chatID: string
+  roster: User[]
+  readMessages: { id: string }[]
+  unreadMessages: number
+}
+
 // CreateDialogMessage
 
 export interface CreateDialogMessageOptions {

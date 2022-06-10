@@ -9,10 +9,13 @@ import {
 } from 'socket-controllers'
 
 import ChatService from '../../services/chat'
+import DialogService from '../../services/dialog'
+import GroupService from '../../services/group'
 import {
   GetChatsDTO,
   GetDialogsDTO,
   SearchChatsDTO,
+  SearchDialogsDTO,
   CreateGroupDTO
 } from '../../dtos/socket/chat-manager.dto'
 import { useSocketMiddleware } from '../../utils/custom-socket-middleware'
@@ -41,7 +44,9 @@ class ChatManagerController {
     ])
 
     try {
-      const data = await ChatService.getChats(body)
+      const { chats } = await ChatService.getChats(body)
+
+      const data = { userID: body.userID, chats }
 
       socket.join(`chat_manager_room=${body.userID}`)
       socket.emit('chats:got', data)
@@ -61,12 +66,35 @@ class ChatManagerController {
     ])
 
     try {
-      const data = await ChatService.searchChats(body)
+      const { users, chats } = await ChatService.searchChats(body)
+
+      const data = { userID: body.userID, users, chats }
 
       socket.emit('chats:searched', data)
     } catch (error: any) {
       console.error(error)
       socket.emit('chats:searched', { error: { message: error.message } })
+    }
+  }
+
+  @OnMessage('dialogs:search')
+  async searchDialogs(@ConnectedSocket() connectedSocket: any, @MessageBody() body: SearchDialogsDTO) {
+    const socket = useSocketMiddleware(connectedSocket, [
+      authSocketMiddleware({
+        permittedRoles: authRolesArray,
+        emitAtError: { emits: [{ event: 'dialogs:searched', arg: message => ({ error: { message } }) }] }
+      })
+    ])
+
+    try {
+      const dialogs = await DialogService.searchDialogs(body)
+
+      const data = { userID: body.userID, dialogs }
+
+      socket.emit('dialogs:searched', data)
+    } catch (error: any) {
+      console.error(error)
+      socket.emit('dialogs:searched', { error: { message: error.message } })
     }
   }
 
@@ -80,7 +108,9 @@ class ChatManagerController {
     ])
 
     try {
-      const data = await ChatService.getDialogs(body)
+      const dialogs = await DialogService.findDialogs({ ...body, active: true })
+
+      const data = { userID: body.userID, dialogs }
 
       socket.emit('dialogs:got', data)
     } catch (error: any) {
@@ -99,7 +129,9 @@ class ChatManagerController {
     ])
 
     try {
-      const data = await ChatService.createGroup(body)
+      const group = await GroupService.createGroup(body)
+
+      const data = { userID: body.creatorID, group }
 
       io.of(namespace).to(`user_room=${body.creatorID}`).emit('group:created', data)
       body.roster.forEach(user => io.of(namespace).to(`user_room=${user.userID}`).emit('group:created', data))

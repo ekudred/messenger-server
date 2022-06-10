@@ -3,14 +3,14 @@ import JWT from 'jsonwebtoken'
 import { expiresInOptions } from './types'
 
 class TokenService {
-  public static generateTokens(payload: string | object | Buffer, expiresIn: expiresInOptions) {
+  static generateTokens(payload: string | object | Buffer, expiresIn: expiresInOptions) {
     const accessToken = JWT.sign(payload, process.env.JWT_ACCESS_SECRET!, { expiresIn: expiresIn.accessToken })
     const refreshToken = JWT.sign(payload, process.env.JWT_REFRESH_SECRET!, { expiresIn: expiresIn.refreshToken })
 
     return { accessToken, refreshToken }
   }
 
-  public static verifyAccessToken(accessToken: string) {
+  static verifyAccessToken(accessToken: string) {
     try {
       const data: any = JWT.verify(accessToken, process.env.JWT_ACCESS_SECRET!)
 
@@ -20,7 +20,7 @@ class TokenService {
     }
   }
 
-  public static verifyRefreshToken(refreshToken: string) {
+  static verifyRefreshToken(refreshToken: string) {
     try {
       const data: any = JWT.verify(refreshToken, process.env.JWT_REFRESH_SECRET!)
 

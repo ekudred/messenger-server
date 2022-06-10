@@ -1,19 +1,19 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   Default,
   BelongsTo,
-  Scopes,
-  DataType,
   UpdatedAt,
-  CreatedAt
+  CreatedAt,
+  Scopes,
+  DataType
 } from 'sequelize-typescript'
 import { Optional } from 'sequelize'
 
-import Dialog from './dialog.model'
 import User from './user.model'
+import Dialog from './dialog.model'
 
 export interface UserDialogAttributes {
   id: string
@@ -28,7 +28,35 @@ export interface UserDialogAttributes {
 export type UserDialogCreationAttributes = Optional<UserDialogAttributes, 'id' | 'updated_at' | 'created_at'>
 
 @Scopes(() => ({
-  dialog: { include: [{ model: Dialog, include: ['roster', 'messages'] }] }
+  dialogChat: ({ whereMessages }: any) => {
+    return {
+      include: [{
+        model: Dialog.scope([
+          { method: ['roster', {}] },
+          { method: ['messages', { whereMessages }] },
+        ]),
+        as: 'dialog'
+      }]
+    }
+  },
+  dialog: ({}: any) => {
+    return {
+      include: [{
+        model: Dialog.scope([
+          { method: ['roster', {}] },
+          { method: ['lastMessage', {}] },
+          { method: ['unreadMessages', {}] }
+        ]),
+        as: 'dialog'
+      }]
+    }
+  },
+  user: ({}: any) => {
+    return { include: [{ model: User.scope(['safe']), as: 'user' }] }
+  },
+  comrade: ({ where }: any) => {
+    return { include: [{ model: User.scope(['safe']), where, as: 'comrade' }] }
+  }
 }))
 @Table({ tableName: 'user_dialogs' })
 class UserDialog extends Model<UserDialogAttributes, UserDialogCreationAttributes> {
@@ -60,10 +88,10 @@ class UserDialog extends Model<UserDialogAttributes, UserDialogCreationAttribute
 
   // Associations
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, { foreignKey: 'user_id' })
   declare user: User
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, { foreignKey: 'comrade_id' })
   declare comrade: User
 
   @BelongsTo(() => Dialog)

@@ -1,31 +1,32 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
+  HasOne,
   HasMany,
   Default,
   BelongsTo,
+  UpdatedAt,
+  CreatedAt,
   Scopes,
-  DataType,
-  UpdatedAt, CreatedAt
+  DataType
 } from 'sequelize-typescript'
 import { Optional } from 'sequelize'
 
 import User from './user.model'
 import GroupRoster from './group-roster.model'
 import GroupMessage from './group-message.model'
+import GroupLastMessage from './group-last-message.model'
 import FolderGroupRoster from './folder-group-roster.model'
-
+import GroupMessageUnread from './group-message-unread.model'
 import { defaultGroupChatAvatarImage } from '../../utils/constants'
-import { userSafeAttributes } from '../constants'
 
 export interface GroupAttributes {
   id: string
   creator_id: string
   name: string
   avatar: string
-  updated_messages_at: Date
   updated_at: Date
   created_at: Date
 }
@@ -33,9 +34,49 @@ export interface GroupAttributes {
 export type GroupCreationAttributes = Optional<GroupAttributes, 'id' | 'updated_at' | 'created_at'>
 
 @Scopes(() => ({
-  roster: { include: [{ model: GroupRoster }] },
-  messages: { include: [{ model: GroupMessage, include: ['unread'] }] },
-  creator: { include: [{ model: User, attributes: userSafeAttributes }] }
+  roster: ({}: any) => {
+    return {
+      include: [{
+        model: GroupRoster.scope([{ method: ['user', {}] }]),
+        as: 'roster'
+      }]
+    }
+  },
+  messages: ({ whereMessages }: any) => {
+    return {
+      include: [{
+        model: GroupMessage.scope([
+          { method: ['author', {}] },
+          { method: ['unread', {}] }
+        ]),
+        as: 'messages',
+        where: whereMessages
+      }]
+    }
+  },
+  lastMessage: ({}: any) => {
+    return {
+      include: [{
+        model: GroupLastMessage.scope([{ method: ['message', {}] }]),
+        as: 'last_message'
+      }]
+    }
+  },
+  creator: ({}: any) => {
+    return {
+      include: [{
+        model: User.scope(['safe']),
+        as: 'creator'
+      }]
+    }
+  },
+  unreadMessages: ({}: any) => {
+    return {
+      include: [{
+        model: GroupMessageUnread.scope([{ method: ['message', {}] }]), as: 'unread_messages'
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'groups' })
 class Group extends Model<GroupAttributes, GroupCreationAttributes> {
@@ -54,10 +95,6 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> {
   @Column({ type: DataType.STRING })
   declare avatar: string
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE })
-  declare updated_messages_at: Date
-
   @UpdatedAt
   declare updated_at: Date
 
@@ -74,6 +111,12 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> {
 
   @HasMany(() => GroupMessage)
   declare messages: GroupMessage[]
+
+  @HasOne(() => GroupLastMessage)
+  declare last_message: GroupLastMessage
+
+  @HasMany(() => GroupMessageUnread)
+  declare unread_messages: GroupMessageUnread[]
 
   @HasMany(() => FolderGroupRoster)
   declare folder_roster: FolderGroupRoster[]

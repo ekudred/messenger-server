@@ -1,12 +1,12 @@
-const uuid = require('uuid')
-
 import { Op } from 'sequelize'
 
 import DataBase from '../../database'
 import ErrorAPI from '../../exceptions/ErrorAPI'
+import DialogService from '../dialog'
+import GroupService from '../group'
+import UserService from '../user'
 import TransformedDialog from '../../helpers/dialog'
 import TransformedGroup from '../../helpers/group'
-import TransformedUser from '../../helpers/user'
 import {
   DialogChat,
   GroupChat,
@@ -14,182 +14,142 @@ import {
   GetChatResponse,
   GetChatsOptions,
   GetChatsResponse,
-  GetDialogsOptions,
-  GetDialogsResponse,
   SearchChatsOptions,
-  SearchChatsResponse,
-  CreateDialogOptions,
-  CreateDialogResponse,
-  CreateGroupOptions,
-  CreateGroupResponse,
-  HandleUserDialogOptions, HandleUserDialogResponse
+  SearchChatsResponse
 } from './types'
+import { sortChats } from '../../helpers/common'
 
 class ChatService {
-  public static async getChat(options: GetChatOptions): Promise<GetChatResponse> {
+  static async getChat(options: GetChatOptions): Promise<GetChatResponse> {
     const { type, id, userID } = options
 
     if (type === 'user') {
       const user = await DataBase.models.User.findOne({ where: { id } })
       if (!user) throw ErrorAPI.badRequest('User not found')
 
-      const userDialog = await DataBase.models.UserDialog
-        .scope(['dialog'])
-        .findOne({ where: { user_id: userID, comrade_id: id } })
-
-      if (!userDialog) {
-        const { dialog } = await ChatService.createDialog({ userID, comradeID: id })
-
-        return { userID, chat: { type: 'user', chat: dialog } }
+      const checkUserDialog = await DataBase.models.UserDialog.findOne({ where: { user_id: userID, comrade_id: id } })
+      if (!checkUserDialog) {
+        const dialog = await DialogService.createDialog({ userID, comradeID: id })
+        return { type: 'user', chat: dialog, created: true }
       }
 
-      return { userID, chat: { type: 'user', chat: new TransformedDialog(userDialog.dialog) } }
+      const unreadMessages = await DataBase.models.DialogMessageUnread
+        .scope([
+          { method: ['rosterItem', { where: { user_id: userID } }] },
+          { method: ['message', {}] }
+        ])
+        .findAll({ where: { dialog_id: id } })
+
+      // const firstUnreadMessage = unreadMessages[0]
+      // const firstUnreadMessageCreatedAt = new Date(firstUnreadMessage.message.created_at)
+      //
+      // const start = firstUnreadMessageCreatedAt.setDate(firstUnreadMessageCreatedAt.getDate() - 1)
+      // const end = new Date()
+
+      // messages where: { created_at: { [Op.between]: [start, end] } }
+      const userDialog = await DataBase.models.UserDialog
+        .scope([{ method: ['dialogChat', {}] }])
+        .findOne({
+          where: { user_id: userID, comrade_id: id },
+          order: [[
+            { model: DataBase.models.Dialog, as: 'dialog' },
+            { model: DataBase.models.DialogMessage, as: 'messages' },
+            'created_at', 'ASC'
+          ]]
+        })
+
+      // order: [
+      //   // [
+      //   //   { model: DataBase.models.Dialog, as: 'dialog' },
+      //   //   { model: DataBase.models.DialogMessage, as: 'messages' },
+      //   //   'created_at', 'ASC'
+      //   // ]
+      // ]
+
+      return { type: 'user', chat: new TransformedDialog(userDialog.dialog), created: false }
     }
 
     if (type === 'group') {
+      // const unreadMessages = await DataBase.models.GroupMessageUnread
+      //   .scope([
+      //     { method: ['rosterItem', { where: { user_id: userID } }] },
+      //     { method: ['message', {}] }
+      //   ])
+      //   .findAll({ where: { group_id: id } })
+      //
+      // const firstUnreadMessage = unreadMessages[0]
+      //
+      // const firstUnreadMessageCreatedAt = new Date(firstUnreadMessage.message.created_at)
+      //
+      // const start = firstUnreadMessageCreatedAt.setDate(firstUnreadMessageCreatedAt.getDate() - 1)
+      // const end = new Date()
+
+      // messages  where: { created_at: { [Op.between]: [start, end] } }
+
       const group = await DataBase.models.Group
-        .scope(['roster', 'messages', 'creator'])
-        .findOne({ where: { id } })
+        .scope([{ method: ['roster', {}] }, { method: ['messages', {}] }, { method: ['creator', {}] }])
+        .findOne({
+          where: { id },
+          order: [[
+            { model: DataBase.models.Group, as: 'group' },
+            { model: DataBase.models.GroupMessage, as: 'messages' },
+            'created_at', 'ASC'
+          ]]
+        })
+      // order: [
+      //   // [{ model: DataBase.models.GroupMessage, as: 'messages' }, 'created_at', 'ASC']
+      // ],
+
       if (!group) throw ErrorAPI.badRequest('Group not found')
 
-      return { userID, chat: { type: 'group', chat: new TransformedGroup(group) } }
+      return { type: 'group', chat: new TransformedGroup(group), created: false }
     }
 
     throw ErrorAPI.badRequest('Chat not found')
   }
 
-  public static async getChats(options: GetChatsOptions): Promise<GetChatsResponse> {
+  static async getChats(options: GetChatsOptions): Promise<GetChatsResponse> {
     const { userID } = options
 
-    const userDialogs = await DataBase.models.UserDialog
-      .findAll({
-        where: { user_id: userID, active: true },
-        order: [[{ model: DataBase.models.Dialog, as: 'dialog' }, 'updated_messages_at', 'DESC']],
-        include: [{ model: DataBase.models.Dialog, include: ['roster', 'messages'] }]
-      })
-    const dialogs = userDialogs.map((userDialog: any) => ({
-      type: 'user', chat: new TransformedDialog(userDialog.dialog)
-    }))
+    const dialogs = await DialogService.findDialogs({ userID, active: true })
+    const groups = await GroupService.findGroups({ userID })
 
-    const userGroups = await DataBase.models.GroupRoster
-      .findAll({
-        where: { user_id: userID },
-        order: [[{ model: DataBase.models.Group, as: 'group' }, 'updated_messages_at', 'DESC']],
-        include: [{ model: DataBase.models.Group, include: ['roster', 'messages', 'creator'] }]
-      })
-    const groups = userGroups.map((userGroup: any) => ({ type: 'group', chat: new TransformedGroup(userGroup.group) }))
+    const dialogChats: DialogChat[] = dialogs.map(dialog => ({ type: 'user', chat: dialog }))
+    const groupChats: GroupChat[] = groups.map(group => ({ type: 'group', chat: group }))
 
-    const chats = [...dialogs, ...groups]
+    const chats = sortChats([...dialogChats, ...groupChats])
 
-    return { userID, chats }
+    return { chats }
   }
 
-  public static async getDialogs(options: GetDialogsOptions): Promise<GetDialogsResponse> {
-    const { userID } = options
-
-    const userDialogs = await DataBase.models.UserDialog
-      .scope(['dialog'])
-      .findAll({ where: { user_id: userID, active: true } })
-    const dialogs = userDialogs.map((userDialog: any) => new TransformedDialog(userDialog.dialog))
-
-    return { userID, dialogs }
-  }
-
-  public static async searchChats(options: SearchChatsOptions): Promise<SearchChatsResponse> {
+  static async searchChats(options: SearchChatsOptions): Promise<SearchChatsResponse> {
     const { value, userID } = options
 
-    const userDialogs = await DataBase.models.UserDialog
-      .scope(['dialog'])
-      .findAll({ where: { user_id: userID, active: true } })
-    const dialogs: DialogChat[] = userDialogs.map((userDialog: any) => ({
-      type: 'user', chat: new TransformedDialog(userDialog.dialog)
-    }))
+    const users = await UserService.searchUsers({ userID, value })
 
-    const userGroups = await DataBase.models.GroupRoster
-      .scope([{ method: ['searchLikeName', value] }, 'group'])
-      .findAll({ where: { user_id: userID } })
-    const groups: GroupChat[] = userGroups.map((userGroup: any) => ({
-      type: 'group', chat: new TransformedGroup(userGroup.group)
-    }))
-
-    const users = await DataBase.models.User.scope(['safeAttributes']).findAll({
-      where: { id: { [Op.not]: userID }, username: { [Op.like]: `%${value}%` } }
+    const inactiveDialogs = await DialogService.findDialogs({
+      userID, comradeID: users.map(user => user.id), active: false
     })
+    const inactiveDialogChats: DialogChat[] = inactiveDialogs.map(dialog => ({ type: 'user', chat: dialog }))
 
-    const transformedDialogs = dialogs.map(dialog => {
-      const { type, chat } = dialog
-      const comrade = dialog.chat.roster.find(user => user.id !== userID)!
-      return { type, chat: { ...chat, comrade } }
+    const activeDialogs = await DialogService.findDialogs({
+      userID, comradeID: users.map(user => user.id), active: true
     })
-    const filteredUsers: TransformedUser[] = value.trim() !== '' ? users
-      .map((user: any) => new TransformedUser(user))
-      .filter((user: any) => !transformedDialogs.some(dialog => dialog.chat.comrade.id === user.id)) : []
+    const activeDialogChats: DialogChat[] = activeDialogs.map(dialog => ({ type: 'user', chat: dialog }))
 
-    const filteredDialogs = transformedDialogs.filter(dialog => users.some((user: any) => dialog.chat.comrade.id === user.id))
+    const groups = await GroupService.searchGroups({ userID, value })
+    const groupChats: GroupChat[] = groups.map(group => ({ type: 'group', chat: group }))
 
-    const chats = [...filteredDialogs, ...groups]
+    if (value.trim() === '') {
+      return { chats: sortChats([...activeDialogChats, ...groupChats]), users: [] }
+    }
 
-    return { userID, chats, users: filteredUsers }
-  }
+    const dialogsComrades = [...activeDialogChats, ...inactiveDialogChats].map(dialog => dialog.chat.roster.find(user => user.id !== userID)!)
+    const filteredUsers = users.filter(user => !dialogsComrades.some(item => item.id === user.id))
 
-  public static async createDialog(options: CreateDialogOptions): Promise<CreateDialogResponse> {
-    const { userID, comradeID } = options
+    const chats = sortChats([...activeDialogChats, ...inactiveDialogChats, ...groupChats])
 
-    const createdDialog = await DataBase.models.Dialog.create({ id: uuid.v4() })
-
-    const dialogRosterBulkOptions = [
-      { id: uuid.v4(), dialog_id: createdDialog.id, user_id: userID },
-      { id: uuid.v4(), dialog_id: createdDialog.id, user_id: comradeID }
-    ]
-    await DataBase.models.DialogRoster.bulkCreate(dialogRosterBulkOptions)
-
-    const userDialogBulkOptions = [
-      { id: uuid.v4(), dialog_id: createdDialog.id, user_id: userID, comrade_id: comradeID },
-      { id: uuid.v4(), dialog_id: createdDialog.id, user_id: comradeID, comrade_id: userID }
-    ]
-    await DataBase.models.UserDialog.bulkCreate(userDialogBulkOptions)
-
-    const dialog = await DataBase.models.Dialog.scope(['roster', 'messages']).findOne({ where: { id: createdDialog.id } })
-
-    return { userID, dialog: new TransformedDialog(dialog) }
-  }
-
-  public static async createGroup(options: CreateGroupOptions): Promise<CreateGroupResponse> {
-    const { creatorID, name, roster } = options // + image
-
-    if (roster.length < 2) throw ErrorAPI.badRequest('Membership is not enough')
-
-    const createdGroup = await DataBase.models.Group.create({ id: uuid.v4(), creator_id: creatorID, name })
-    const createdGroupRoster = [{ userID: creatorID }, ...roster]
-
-    const groupRosterBulkOptions = createdGroupRoster.map(user => ({
-      id: uuid.v4(), group_id: createdGroup.id, user_id: user.userID
-    }))
-    await DataBase.models.GroupRoster.bulkCreate(groupRosterBulkOptions)
-
-    const group = await DataBase.models.Group.scope(['roster', 'messages', 'creator']).findOne({ where: { id: createdGroup.id } })
-
-    return { userID: creatorID, group: new TransformedGroup(group) }
-  }
-
-  public static async handleUserDialog(options: HandleUserDialogOptions): Promise<HandleUserDialogResponse> {
-    const { dialogID } = options
-
-    const count = await DataBase.models.DialogMessage.count({ where: { dialog_id: dialogID } })
-
-    const usersDialogs = await DataBase.models.UserDialog.scope(['dialog']).findAll({ where: { dialog_id: dialogID } })
-    const active = usersDialogs.every((dialog: any) => dialog.active === true)
-
-    await usersDialogs.forEach(async (dialog: any) => {
-      if (count === 0 && active) {
-        dialog.active = false
-      }
-      if (count !== 0 && !active) {
-        dialog.active = true
-      }
-
-      await dialog.save()
-    })
+    return { chats, users: filteredUsers }
   }
 }
 

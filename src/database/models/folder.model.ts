@@ -1,21 +1,21 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   HasMany,
-  Scopes,
   Default,
   BelongsTo,
-  DataType,
-  UpdatedAt, CreatedAt
+  UpdatedAt,
+  CreatedAt,
+  Scopes,
+  DataType
 } from 'sequelize-typescript'
 import { Optional } from 'sequelize'
 
 import User from './user.model'
 import FolderDialogRoster from './folder-dialog-roster.model'
 import FolderGroupRoster from './folder-group-roster.model'
-import { userSafeAttributes } from '../constants'
 
 export interface FolderAttributes {
   id: string
@@ -28,13 +28,30 @@ export interface FolderAttributes {
 export type FolderCreationAttributes = Optional<FolderAttributes, 'id' | 'updated_at' | 'created_at'>
 
 @Scopes(() => ({
-  roster: {
-    include: [
-      { model: FolderDialogRoster },
-      { model: FolderGroupRoster }
-    ]
+  dialogs: ({}: any) => {
+    return {
+      include: [{
+        model: FolderDialogRoster.scope([{ method: ['dialog', {}] }]),
+        as: 'dialogs'
+      }]
+    }
   },
-  user: { include: [{ model: User, attributes: userSafeAttributes }] }
+  groups: ({}: any) => {
+    return {
+      include: [{
+        model: FolderGroupRoster.scope([{ method: ['group', {}] }]),
+        as: 'groups'
+      }]
+    }
+  },
+  user: ({}: any) => {
+    return {
+      include: [{
+        model: User.scope(['safe']),
+        as: 'user'
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'folders' })
 class Folder extends Model<FolderAttributes, FolderCreationAttributes> {
@@ -57,14 +74,14 @@ class Folder extends Model<FolderAttributes, FolderCreationAttributes> {
 
   // Associations
 
-  @BelongsTo(() => User)
-  declare user: User
-
   @HasMany(() => FolderDialogRoster)
   declare dialogs: FolderDialogRoster[]
 
   @HasMany(() => FolderGroupRoster)
   declare groups: FolderGroupRoster[]
+
+  @BelongsTo(() => User)
+  declare user: User
 }
 
 export default Folder

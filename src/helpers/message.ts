@@ -24,7 +24,7 @@ class TransformedMessage implements Message {
     const { chatType, chatID, model } = options
 
     this.id = model.id
-    this.author = new TransformedUser(model.user)
+    this.author = new TransformedUser(model.author)
     this.chatType = chatType
     this.chatID = chatID
     this.text = model.text

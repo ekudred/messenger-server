@@ -3,132 +3,164 @@ const uuid = require('uuid')
 import { Op } from 'sequelize'
 
 import DataBase from '../../database'
+import ErrorAPI from '../../exceptions/ErrorAPI'
 import {
   CreateFolderOptions,
   CreateFolderResponse,
   EditFolderOptions,
   EditFolderResponse,
-  GetFoldersOptions,
-  GetFoldersResponse,
   SearchFolderChatsOptions,
   SearchFolderChatsResponse,
+  SearchFolderDialogsOptions,
+  SearchFolderDialogsResponse,
+  SearchFolderGroupsOptions,
+  SearchFolderGroupsResponse,
   DeleteFolderOptions,
-  DeleteFolderResponse
+  DeleteFolderResponse,
+  FindFolderOptions,
+  FindFolderResponse,
+  FindFoldersOptions,
+  FindFoldersResponse
 } from './types'
 import { DialogChat, GroupChat } from '../chat/types'
-import Folder from '../../helpers/folder'
-import Dialog from '../../helpers/dialog'
-import Group from '../../helpers/group'
-import ErrorAPI from '../../exceptions/ErrorAPI'
+import TransformedFolder from '../../helpers/folder'
+import TransformedDialog from '../../helpers/dialog'
+import TransformedGroup from '../../helpers/group'
+import { sortChats } from '../../helpers/common'
 
 class FolderService {
-  public static async createFolder(options: CreateFolderOptions): Promise<CreateFolderResponse> {
+  static async createFolder(options: CreateFolderOptions): Promise<CreateFolderResponse> {
     const { userID, name, dialogs, groups } = options
 
     const checkFolder = await DataBase.models.Folder.findOne({ where: { user_id: userID, name } })
     if (checkFolder) throw ErrorAPI.badRequest(`You already have a folder with name "${name}"`)
 
-    const folder = await DataBase.models.Folder.create({ id: uuid.v4(), user_id: userID, name })
+    const createdFolder = await DataBase.models.Folder.create({ id: uuid.v4(), user_id: userID, name })
 
     if (dialogs.length !== 0) {
-      const dialogsBulkOptions = dialogs.map((dialog: any) => ({
-        id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id
-      }))
+      const dialogsBulkOptions = dialogs.map((dialog: any) => ({ folder_id: createdFolder.id, dialog_id: dialog.id }))
       await DataBase.models.FolderDialogRoster.bulkCreate(dialogsBulkOptions)
     }
-
     if (groups.length !== 0) {
-      const groupsBulkOptions = groups.map((group: any) => ({
-        id: uuid.v4(), folder_id: folder.id, group_id: group.id
-      }))
+      const groupsBulkOptions = groups.map((group: any) => ({ folder_id: createdFolder.id, group_id: group.id }))
       await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
     }
 
-    const createdFolder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folder.id } })
-    const transformedFolder = new Folder(createdFolder)
+    const folder = await this.findFolder({ id: createdFolder.id })
 
-    return { folder: transformedFolder }
+    return { folder }
   }
 
-  public static async editFolder(options: EditFolderOptions): Promise<EditFolderResponse> {
+  static async editFolder(options: EditFolderOptions): Promise<EditFolderResponse> {
     const { folderID, folderName, roster } = options
-
-    const folder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
+    const { added, deleted } = roster
+    const folder = await DataBase.models.Folder.findOne({ where: { id: folderID } })
 
     if (folder.name !== folderName) {
-      folder.name = folderName
-      // await DataBase.models.Folder.update({ name: folderName }, { where: { id: folderID } })
+      await DataBase.models.Folder.update({ name: folderName }, { where: { id: folderID } })
     }
 
-    if (roster.deleted.dialogs.length !== 0) {
+    if (deleted.dialogs.length !== 0) {
       await DataBase.models.FolderDialogRoster.destroy({
-        where: { dialog_id: { [Op.or]: roster.deleted.dialogs.map((item: any) => item.id) }, folder_id: folder.id }
+        where: { dialog_id: { [Op.or]: deleted.dialogs.map((item: any) => item.id) }, folder_id: folder.id }
       })
     }
-    if (roster.deleted.groups.length !== 0) {
+    if (deleted.groups.length !== 0) {
       await DataBase.models.FolderGroupRoster.destroy({
-        where: { group_id: { [Op.or]: roster.deleted.groups.map((item: any) => item.id) }, folder_id: folder.id }
+        where: { group_id: { [Op.or]: deleted.groups.map((item: any) => item.id) }, folder_id: folder.id }
       })
     }
-    if (roster.added.dialogs.length !== 0) {
-      const dialogsBulkOptions = roster.added.dialogs.map((dialog: any) => ({
-        id: uuid.v4(), folder_id: folder.id, dialog_id: dialog.id
-      }))
+    if (added.dialogs.length !== 0) {
+      const dialogsBulkOptions = added.dialogs.map((dialog: any) => ({ folder_id: folder.id, dialog_id: dialog.id }))
       await DataBase.models.FolderDialogRoster.bulkCreate(dialogsBulkOptions)
     }
-    if (roster.added.groups.length !== 0) {
-      const groupsBulkOptions = roster.added.groups.map((group: any) => ({
-        id: uuid.v4(), folder_id: folder.id, group_id: group.id
-      }))
+    if (added.groups.length !== 0) {
+      const groupsBulkOptions = added.groups.map((group: any) => ({ folder_id: folder.id, group_id: group.id }))
       await DataBase.models.FolderGroupRoster.bulkCreate(groupsBulkOptions)
     }
 
-    // await folder.reload()
-    await folder.save()
+    const editedFolder = await this.findFolder({ id: folder.id })
 
-    const editedFolder = await DataBase.models.Folder.scope(['roster']).findOne({ where: { id: folderID } })
-    const transformedFolder = new Folder(editedFolder)
-
-    return { folder: transformedFolder }
+    return { folder: editedFolder }
   }
 
-  public static async getFolders(options: GetFoldersOptions): Promise<GetFoldersResponse> {
+  static async searchFolderDialogs(options: SearchFolderDialogsOptions): Promise<SearchFolderDialogsResponse> {
+    const { userID, folderID, value } = options
+
+    const rosterDialogs = await DataBase.models.FolderDialogRoster
+      .scope([{ method: ['dialog', {}] }])
+      .findAll({
+        where: { folder_id: folderID },
+        order: [[
+          { model: DataBase.models.Dialog, as: 'dialog' },
+          { model: DataBase.models.DialogLastMessage, as: 'last_message' },
+          'updated_at', 'DESC'
+        ]]
+      })
+
+    const dialogs = rosterDialogs.map((rosterDialog: any) => {
+      return { chat: rosterDialog.dialog, comrade: rosterDialog.dialog.roster.find((user: any) => user.id !== userID)! }
+    })
+    const filteredDialogs = dialogs.filter((dialog: any) => dialog.comrade.username.match(value))
+
+    return filteredDialogs.map((dialog: any) => new TransformedDialog(dialog.chat))
+  }
+
+  static async searchFolderGroups(options: SearchFolderGroupsOptions): Promise<SearchFolderGroupsResponse> {
+    const { folderID, value } = options
+
+    const rosterGroups = await DataBase.models.FolderGroupRoster
+      .scope([{ method: ['group', { where: { name: { [Op.like]: `%${value}%` } } }] }])
+      .findAll({
+        where: { folder_id: folderID },
+        order: [[
+          { model: DataBase.models.Group, as: 'group' },
+          { model: DataBase.models.GroupLastMessage, as: 'last_message' },
+          'updated_at', 'DESC'
+        ]]
+      })
+
+    return rosterGroups.map((rosterGroup: any) => new TransformedGroup(rosterGroup.group))
+  }
+
+  static async findFolder(options: FindFolderOptions): Promise<FindFolderResponse> {
+    const { id } = options
+
+    const folder = await DataBase.models.Folder
+      .scope([{ method: ['dialogs', {}] }, { method: ['groups', {}] }])
+      .findOne({ where: { id } })
+
+    return new TransformedFolder(folder)
+  }
+
+  static async findFolders(options: FindFoldersOptions): Promise<FindFoldersResponse> {
     const { userID } = options
 
-    const folders = await DataBase.models.Folder.scope(['roster']).findAll({ where: { user_id: userID } })
-    const transformedFolders = folders.map((folder: any) => new Folder(folder))
+    const folders = await DataBase.models.Folder
+      .scope([{ method: ['dialogs', {}] }, { method: ['groups', {}] }])
+      .findAll({
+        where: { user_id: userID },
+        order: [['created_at', 'ASC']]
+      })
 
-    return { folders: transformedFolders }
+    return folders.map((folder: any) => new TransformedFolder(folder))
   }
 
-  public static async searchFolderChats(options: SearchFolderChatsOptions): Promise<SearchFolderChatsResponse> {
+  static async searchFolderChats(options: SearchFolderChatsOptions): Promise<SearchFolderChatsResponse> {
     const { folderID, userID, value } = options
 
-    const folderDialogs = await DataBase.models.FolderDialogRoster
-      .findAll({ where: { folder_id: folderID } })
-    const dialogs: DialogChat[] = folderDialogs.map((folderDialog: any) => ({
-      type: 'user', chat: new Dialog(folderDialog.dialog)
-    }))
-    const transformedDialogs = dialogs.map(dialog => {
-      const { type, chat } = dialog
-      const comrade = dialog.chat.roster.find(user => user.id !== userID)!
-      return { type, chat: { ...chat, comrade } }
-    })
-    const filteredDialogs = transformedDialogs.filter(dialog => dialog.chat.comrade.username.match(value))
+    const dialogs = await this.searchFolderDialogs({ folderID, userID, value })
+    const groups = await this.searchFolderGroups({ folderID, value })
 
-    const folderGroups = await DataBase.models.FolderGroupRoster
-      .scope([{ method: ['searchLikeName', value] }])
-      .findAll({ where: { folder_id: folderID } })
-    const groups: GroupChat[] = folderGroups.map((folderGroup: any) => ({
-      type: 'group', chat: new Group(folderGroup.group)
-    }))
+    const dialogChats: DialogChat[] = dialogs.map(dialog => ({ type: 'user', chat: dialog }))
+    const groupChats: GroupChat[] = groups.map(group => ({ type: 'group', chat: group }))
 
-    const chats = [...filteredDialogs, ...groups]
+    const chats = sortChats([...dialogChats, ...groupChats])
 
-    return { userID, folderID, chats }
+    return { chats }
   }
 
-  public static async deleteFolder(options: DeleteFolderOptions): Promise<DeleteFolderResponse> {
+  static async deleteFolder(options: DeleteFolderOptions): Promise<DeleteFolderResponse> {
     const { folderID, folderName } = options
 
     await DataBase.models.FolderDialogRoster.destroy({ where: { folder_id: folderID } })

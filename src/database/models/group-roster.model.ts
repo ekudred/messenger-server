@@ -1,19 +1,19 @@
 import {
-  Model,
   Table,
+  Model,
   Column,
   ForeignKey,
   Default,
   BelongsTo,
+  UpdatedAt,
+  CreatedAt,
   Scopes,
-  DefaultScope,
-  DataType, UpdatedAt, CreatedAt
+  DataType
 } from 'sequelize-typescript'
-import { Op, Optional } from 'sequelize'
+import { Optional } from 'sequelize'
 
 import Group from './group.model'
 import User from './user.model'
-import { userSafeAttributes } from '../constants'
 
 export interface GroupRosterAttributes {
   id: string
@@ -25,25 +25,42 @@ export interface GroupRosterAttributes {
 
 export type GroupRosterCreationAttributes = Optional<GroupRosterAttributes, 'id' | 'updated_at' | 'created_at'>
 
-@DefaultScope(() => ({
-  include: [{ model: User, attributes: userSafeAttributes }]
-}))
 @Scopes(() => ({
-  searchLikeName: value => {
+  groupChat: ({ whereMessages }: any) => {
     return {
-      include: [
-        {
-          model: Group,
-          include: ['roster', 'messages', 'creator'],
-          where: {
-            name: { [Op.like]: `%${value}%` }
-          }
-        }
-      ]
+      include: [{
+        model: Group.scope([
+          { method: ['roster', {}] },
+          { method: ['messages', { whereMessages }] },
+          { method: ['creator', {}] }
+        ]),
+        as: 'group'
+      }]
     }
   },
-  group: { include: [{ model: Group, include: ['roster', 'messages', 'creator'] }] },
-  user: { include: [{ model: User, attributes: userSafeAttributes }] }
+  group: ({ where }: any) => {
+    return {
+      include: [{
+        model: Group.scope([
+          { method: ['roster', {}] },
+          { method: ['lastMessage', {}] },
+          { method: ['creator', {}] },
+          { method: ['unreadMessages', {}] }
+        ]),
+        as: 'group',
+        where
+      }]
+    }
+  },
+  user: ({ where }: any) => {
+    return {
+      include: [{
+        model: User.scope(['safe']),
+        as: 'user',
+        where
+      }]
+    }
+  }
 }))
 @Table({ tableName: 'group_roster' })
 class GroupRoster extends Model<GroupRosterAttributes, GroupRosterCreationAttributes> {
@@ -67,11 +84,11 @@ class GroupRoster extends Model<GroupRosterAttributes, GroupRosterCreationAttrib
 
   // Associations
 
-  @BelongsTo(() => User)
-  declare user: User
-
   @BelongsTo(() => Group)
   declare group: Group
+
+  @BelongsTo(() => User)
+  declare user: User
 }
 
 export default GroupRoster

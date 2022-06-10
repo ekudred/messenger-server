@@ -18,6 +18,15 @@ export interface CreateUserOptions {
   password: string
 }
 
+// SearchUsers
+
+export interface SearchUsersOptions {
+  userID: string
+  value: string
+}
+
+export type SearchUsersResponse = User[]
+
 // EditUser
 
 export interface UpdateUserOptions {
